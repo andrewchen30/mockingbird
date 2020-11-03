@@ -1,16 +1,16 @@
-# mockingbird
+# Mockingbird
 
 An easy API proxy base on Envoy, Envoy management server and web GUI administrator.
 
-# Features
+## Features
 
 * Mock single API with custom JSON.
 * Proxy non-mock API to your original service.
 * Operate above mentioned features on a simple GUI.
 
-# Getting Started
+## Getting Started
 
-## Setup Locally
+### Setup Locally
 
 * Install [Docker](https://www.docker.com/)
 * Install [Docker Compose](https://docs.docker.com/compose/install/)
@@ -30,25 +30,25 @@ Open your browser [http://localhost:3000/admin](http://localhost:3000/admin) and
 
 ![admin_proxy_and_mockers](./docs/img_admin_proxy_and_mockers.png)
 
-# Documentation
+## Documentation
 
 Not necessary right now. When we start provide more features, we will provide documents.
 
-# Packages
+## Packages
 
-## Related
+### Related
 
 * [envoyproxy](https://www.envoyproxy.io/docs/envoy/latest/start/start#quick-start-to-run-simple-example)
 * [envoyproxy/go-control-plan](https://github.com/envoyproxy/go-control-plane)
 * [ant-design](https://github.com/ant-design/ant-design/)
 * [create-react-app](https://github.com/facebook/create-react-app)
 
-# Contributing
+## Contributing
 
 > Welcome!! This is my first real open-source project, please mail me your thoughts!
 
 * My personal `chenpoanandrew@gmail.com`
 
-# License
+## License
 
 MIT
