@@ -1,0 +1,49 @@
+version: '3.4'
+x-common-env:
+  - LOGGER_LEVEL=debug
+  - GOPATH=/src/.dockerbuild/gopath
+  - GOCACHE=/src/.dockerbuild/gocache
+  - STATIC_FILES=/src/assets
+x-golang_base:
+  image: 'golang:1.14'
+  working_dir: /src
+  environment:
+    - LOGGER_LEVEL=debug
+    - GOPATH=/src/.dockerbuild/gopath
+    - GOCACHE=/src/.dockerbuild/gocache
+  volumes:
+    - '.:/src'
+services:
+  envoy:
+    image: 'envoyproxy/envoy-dev:b055dd082c0a49525a97cea6604ac1323a55d2fb'
+    volumes:
+      - './setting/envoy_config.yaml:/etc/envoy/envoy.yaml'
+    ports:
+      - '10000:10000'
+      - '10001:10001'
+    networks:
+      - envoy-internal
+  management-server:
+    image: 'envoy_management_server:latest'
+    build:
+      context: .
+    ports:
+      - '4000:4000'
+      - '3000:3000'
+    networks:
+      - envoy-internal
+  build:
+    image: 'golang:1.14'
+    working_dir: /src
+    environment:
+      - LOGGER_LEVEL=debug
+      - GOPATH=/src/.dockerbuild/gopath
+      - GOCACHE=/src/.dockerbuild/gocache
+    volumes:
+      - '.:/src'
+    command:
+      - make
+
+networks:
+  envoy-internal:
+    name: envoy-internal
