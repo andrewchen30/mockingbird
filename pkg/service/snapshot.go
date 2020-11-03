@@ -6,6 +6,10 @@ import (
 	"github.com/lab-envoy/pkg/utils"
 )
 
+type InitOpt struct {
+	InitFile string
+}
+
 type SnapshotController struct {
 	cache.SnapshotCache
 	Dao    *dao.InternalMemorySnapshot
@@ -22,26 +26,10 @@ func NewSnapshotController(nodeId string, cacheDao *dao.InternalMemorySnapshot, 
 	}
 }
 
-func (ctrl *SnapshotController) Init() {
-	// TODO: import default setting
-}
-
-func (ctrl *SnapshotController) UnshiftEasyRoute(ezr *dao.EasyEnvoyRoute, refresh bool) error {
-	if err := ctrl.Dao.UnshiftRouter(ezr); err != nil {
+func (ctrl *SnapshotController) Init(opt InitOpt) error {
+	if err := ctrl.Dao.LoadFromFile(opt.InitFile); err != nil {
+		ctrl.logger.Errorf("Load init config file not found")
 		return err
-	}
-	if refresh {
-		return ctrl.RefreshSnapshot()
-	}
-	return nil
-}
-
-func (ctrl *SnapshotController) UnshiftDirectResponse(dr *dao.DirectResponse, refresh bool) error {
-	if err := ctrl.Dao.UnshiftDirectRes(dr); err != nil {
-		return nil
-	}
-	if refresh {
-		return ctrl.RefreshSnapshot()
 	}
 	return nil
 }

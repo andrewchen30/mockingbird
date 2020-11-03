@@ -27,9 +27,9 @@ const (
 
 type EnvoySnapshot interface {
 	// Router
-	UnshiftRouter(*EasyEnvoyRoute) error
-	UpdateRouterByID(id int, newEz *EasyEnvoyRoute) error
-	ListRouter() ([]EasyEnvoyRoute, error)
+	UnshiftRouter(*ProxyRoute) error
+	UpdateRouterByID(id int, newEz *ProxyRoute) error
+	ListRouter() ([]ProxyRoute, error)
 	RemoveRouterByID(int) error
 	// DirectResponse
 	UnshiftDirectRes(*DirectResponse) error
@@ -41,7 +41,7 @@ type EnvoySnapshot interface {
 }
 
 // Proxy
-type EasyEnvoyRoute struct {
+type ProxyRoute struct {
 	ID           int      `json:"id"`
 	Status       Status   `json:"status"`
 	Desc         string   `json:"desc"`
@@ -73,7 +73,7 @@ func parseClustersToResource(clusters []*cluster.Cluster) (r []types.Resource) {
 	return r
 }
 
-func makeClusters(easyRoutes []EasyEnvoyRoute) []*cluster.Cluster {
+func makeClusters(easyRoutes []ProxyRoute) []*cluster.Cluster {
 	var clusters []*cluster.Cluster
 
 	for _, ez := range easyRoutes {
@@ -90,7 +90,7 @@ func makeClusters(easyRoutes []EasyEnvoyRoute) []*cluster.Cluster {
 	return clusters
 }
 
-func makeEndpoint(easyRoute EasyEnvoyRoute) *endpoint.ClusterLoadAssignment {
+func makeEndpoint(easyRoute ProxyRoute) *endpoint.ClusterLoadAssignment {
 	return &endpoint.ClusterLoadAssignment{
 		ClusterName: easyRoute.UpstreamName,
 		Endpoints: []*endpoint.LocalityLbEndpoints{{
@@ -127,7 +127,7 @@ func makeHeaderValueOptions(m map[string]string) (headers []*core.HeaderValueOpt
 	return headers
 }
 
-func makeRoute(routeName string, easyRoutes []EasyEnvoyRoute, directRes []DirectResponse) *route.RouteConfiguration {
+func makeRoute(routeName string, easyRoutes []ProxyRoute, directRes []DirectResponse) *route.RouteConfiguration {
 
 	var routes []*route.Route
 

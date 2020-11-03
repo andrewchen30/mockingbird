@@ -1,0 +1,25 @@
+{
+  "mockers": [
+    {
+      "status": "active",
+      "desc": "Demo basic mocker.",
+      "createBy": "mockingbird",
+      "prefix": "/api/demo",
+      "reqMethod": "GET",
+      "resStatus": 200,
+      "resBody": "{\"mockingbird\": true }"
+    }
+  ],
+  "proxyRoutes": [
+    {
+      "status": "active",
+      "desc": "Proxy every request to the origin service you have.",
+      "createBy": "mockingbird",
+      "prefix": "*",
+      "reqMethod": "*",
+      "upstreamName": "Default proxy",
+      "upstreamHost": "http://www.dcard.tw",
+      "upstreamPort": 80
+    }
+  ]
+}

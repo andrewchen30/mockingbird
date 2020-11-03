@@ -10,16 +10,18 @@ import (
 )
 
 var (
-	logger utils.Logger
-	port   uint
-	nodeID string
+	logger         utils.Logger
+	port           uint
+	nodeID         string
+	routesConfFile string
 )
 
 func init() {
 	logger = utils.Logger{}
 	flag.BoolVar(&logger.Debug, "debug", false, "Enable xDS server debug logging")
 	flag.UintVar(&port, "port", 4000, "xDS management server port")
-	flag.StringVar(&nodeID, "nodeID", "test-id", "Node ID")
+	flag.StringVar(&nodeID, "nodeID", "mockingbird-default-id", "Node ID")
+	flag.StringVar(&routesConfFile, "routesConfFile", "/src/mockingbird.config.json", "Routes config file path")
 }
 
 func main() {
@@ -29,8 +31,17 @@ func main() {
 	snapshotInternalMemoryDao := dao.NewInternalMemorySnapshotDao()
 	snapshotCtrl := service.NewSnapshotController(nodeID, &snapshotInternalMemoryDao, logger)
 
-	snapshotCtrl.Init()
-	snapshotCtrl.RefreshSnapshot()
+	err := snapshotCtrl.Init(service.InitOpt{
+		InitFile: routesConfFile,
+	})
+
+	if err != nil {
+		logger.Errorf("snapshotCtrl.Init failed", err)
+	}
+
+	if err := snapshotCtrl.RefreshSnapshot(); err != nil {
+		logger.Errorf("snapshotCtrl refresh snapshot failed", err)
+	}
 
 	managementServiceConfig := &service.EnvoyManagementServerConfig{
 		Port:               port,
