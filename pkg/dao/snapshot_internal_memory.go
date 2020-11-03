@@ -17,7 +17,7 @@ func NewInternalMemorySnapshotDao() InternalMemorySnapshot {
 	return InternalMemorySnapshot{
 		mutex:          sync.Mutex{},
 		currentVersion: 0,
-		easyRoutes:     []EasyEnvoyRoute{},
+		easyRoutes:     []ProxyRoute{},
 	}
 }
 
@@ -25,7 +25,7 @@ type InternalMemorySnapshot struct {
 	routeName      string
 	mutex          sync.Mutex
 	currentVersion int
-	easyRoutes     []EasyEnvoyRoute
+	easyRoutes     []ProxyRoute
 	directRes      []DirectResponse
 }
 
@@ -58,15 +58,15 @@ func (i *InternalMemorySnapshot) getNextDirectResID() int {
 	return id + 1
 }
 
-func (i *InternalMemorySnapshot) UnshiftRouter(ez *EasyEnvoyRoute) error {
+func (i *InternalMemorySnapshot) UnshiftRouter(ez *ProxyRoute) error {
 	i.mutex.Lock()
 	ez.ID = i.getNextEzRouteID()
-	i.easyRoutes = append([]EasyEnvoyRoute{*ez}, i.easyRoutes...)
+	i.easyRoutes = append([]ProxyRoute{*ez}, i.easyRoutes...)
 	i.mutex.Unlock()
 	return nil
 }
 
-func (i *InternalMemorySnapshot) UpdateRouterByID(newEz *EasyEnvoyRoute) error {
+func (i *InternalMemorySnapshot) UpdateRouterByID(newEz *ProxyRoute) error {
 	i.mutex.Lock()
 	for idx, ez := range i.easyRoutes {
 		if ez.ID == newEz.ID {
@@ -77,13 +77,13 @@ func (i *InternalMemorySnapshot) UpdateRouterByID(newEz *EasyEnvoyRoute) error {
 	return nil
 }
 
-func (i *InternalMemorySnapshot) ListRouter() ([]EasyEnvoyRoute, error) {
+func (i *InternalMemorySnapshot) ListRouter() ([]ProxyRoute, error) {
 	return i.easyRoutes, nil
 }
 
 func (i *InternalMemorySnapshot) RemoveRouterByID(id int) error {
 	i.mutex.Lock()
-	var arr []EasyEnvoyRoute
+	var arr []ProxyRoute
 	for idx, ez := range i.easyRoutes {
 		if ez.ID != id {
 			arr = append(arr, i.easyRoutes[idx])

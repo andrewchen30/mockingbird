@@ -50,26 +50,85 @@ func (o OperationsEndpoints) Health(_ context.Context, req *HealthReq) (*HealthR
 // ===================================================
 
 type AddProxyReq struct {
+	Status       dao.Status `json:"status"`
+	Desc         string     `json:"desc"`
+	Prefix       string     `json:"prefix"`
+	ReqMethod    string     `json:"reqMethod"`
+	UpstreamName string     `json:"upstreamName"`
+	UpstreamHost string     `json:"upstreamHost"`
+	UpstreamPort uint32     `json:"upstreamPort"`
 }
 
 type AddProxyRes struct {
+	Proxy *dao.ProxyRoute
 }
 
 func (o OperationsEndpoints) AddProxy(_ context.Context, req *AddProxyReq) (*AddProxyRes, error) {
-	panic("implement me")
-	return &AddProxyRes{}, nil
+	p := &dao.ProxyRoute{
+		Status:       req.Status,
+		Desc:         req.Desc,
+		Prefix:       req.Prefix,
+		ReqMethod:    req.ReqMethod,
+		AllowDomains: []string{"*"},
+		UpstreamName: req.UpstreamName,
+		UpstreamHost: req.UpstreamHost,
+		UpstreamPort: req.UpstreamPort,
+	}
+
+	if p.Status == "" {
+		p.Status = dao.StatusActive
+	}
+
+	if err := o.snapshotCtrl.Dao.UnshiftRouter(p); err != nil {
+		return nil, err
+	}
+	if err := o.snapshotCtrl.RefreshSnapshot(); err != nil {
+		return nil, err
+	}
+	return &AddProxyRes{Proxy: p}, nil
 }
 
 // ===================================================
 
 type UpdateProxyReq struct {
+	ID           int
+	Status       dao.Status `json:"status"`
+	Desc         string     `json:"desc"`
+	Prefix       string     `json:"prefix"`
+	ReqMethod    string     `json:"reqMethod"`
+	UpstreamName string     `json:"upstreamName"`
+	UpstreamHost string     `json:"upstreamHost"`
+	UpstreamPort uint32     `json:"upstreamPort"`
 }
 
 type UpdateProxyRes struct {
+	Proxy *dao.ProxyRoute
 }
 
 func (o OperationsEndpoints) UpdateProxy(_ context.Context, req *UpdateProxyReq) (*UpdateProxyRes, error) {
-	panic("implement me")
+	p := &dao.ProxyRoute{
+		Status:       req.Status,
+		Desc:         req.Desc,
+		Prefix:       req.Prefix,
+		ReqMethod:    req.ReqMethod,
+		AllowDomains: []string{"*"},
+		UpstreamName: req.UpstreamName,
+		UpstreamHost: req.UpstreamHost,
+		UpstreamPort: req.UpstreamPort,
+	}
+
+	if p.Status == "" {
+		p.Status = dao.StatusActive
+	}
+
+	if err := o.snapshotCtrl.Dao.UpdateRouterByID(p); err != nil {
+		return nil, err
+	}
+	if err := o.snapshotCtrl.RefreshSnapshot(); err != nil {
+		return nil, err
+	}
+
+	return &UpdateProxyRes{Proxy: p}, nil
 }
 
 // ===================================================
@@ -78,22 +137,34 @@ type ListProxyReq struct {
 }
 
 type ListProxyRes struct {
+	Proxies []dao.ProxyRoute
 }
 
 func (o OperationsEndpoints) ListProxy(_ context.Context, req *ListProxyReq) (*ListProxyRes, error) {
-	panic("implement me")
+	proxies, err := o.snapshotCtrl.Dao.ListRouter()
+	if err != nil {
+		return nil, err
+	}
+	return &ListProxyRes{Proxies: proxies}, nil
 }
 
 // ===================================================
 
 type RemoveProxyReq struct {
+	ID int
 }
 
 type RemoveProxyRes struct {
 }
 
 func (o OperationsEndpoints) RemoveProxy(_ context.Context, req *RemoveProxyReq) (*RemoveProxyRes, error) {
-	panic("implement me")
+	if err := o.snapshotCtrl.Dao.RemoveRouterByID(req.ID); err != nil {
+		return nil, err
+	}
+	if err := o.snapshotCtrl.RefreshSnapshot(); err != nil {
+		return nil, err
+	}
+	return &RemoveProxyRes{}, nil
 }
 
 // ===================================================
@@ -134,7 +205,7 @@ func (o OperationsEndpoints) AddMocker(_ context.Context, req *AddMockerReq) (*A
 // ===================================================
 
 type UpdateMockerReq struct {
-	ID        int        `json:"id"`
+	ID        int
 	Status    dao.Status `json:"status"`
 	Desc      string     `json:"desc"`
 	Prefix    string     `json:"prefix"`
@@ -186,7 +257,7 @@ func (o OperationsEndpoints) ListMocker(_ context.Context, req *ListMockerReq) (
 // ===================================================
 
 type RemoveMockerReq struct {
-	ID int `json:"id"`
+	ID int
 }
 
 type RemoveMockerRes struct {

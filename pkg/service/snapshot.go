@@ -26,7 +26,7 @@ func (ctrl *SnapshotController) Init() {
 	// TODO: import default setting
 }
 
-func (ctrl *SnapshotController) UnshiftEasyRoute(ezr *dao.EasyEnvoyRoute, refresh bool) error {
+func (ctrl *SnapshotController) UnshiftRouter(ezr *dao.ProxyRoute, refresh bool) error {
 	if err := ctrl.Dao.UnshiftRouter(ezr); err != nil {
 		return err
 	}
