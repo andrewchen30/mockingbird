@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/lab-envoy/pkg/dao"
 	"github.com/lab-envoy/pkg/utils"
 )
@@ -137,7 +138,7 @@ type ListProxyReq struct {
 }
 
 type ListProxyRes struct {
-	Proxies []dao.ProxyRoute
+	Proxies []dao.ProxyRoute `json:"proxies"`
 }
 
 func (o OperationsEndpoints) ListProxy(_ context.Context, req *ListProxyReq) (*ListProxyRes, error) {
