@@ -15,7 +15,7 @@
       "status": "active",
       "desc": "Proxy every request to the origin service you have.",
       "createBy": "mockingbird",
-      "prefix": "*",
+      "prefix": "/*",
       "reqMethod": "*",
       "upstreamName": "Default proxy",
       "upstreamHost": "http://www.dcard.tw",

@@ -15,6 +15,8 @@ import {
 } from '../store/mockers';
 import { IMocker } from '../interfaces/Mocker';
 import { notifier } from '../utils/notify';
+import { genRefreshProxiesAction, proxiesReducer, proxiesReducerInit } from '../store/proxies';
+import ProxyList from '../components/proxies/ProxyList';
 
 const DefaultMocker: IMocker = {
   prefix: '', 
@@ -39,7 +41,9 @@ type MockerFormState = {
 
 function ProxyAndMockersPage() {
   const [mockers, mockerDispatcher] = useReducer(mockersReducer, [], mockersReducerInit);
+  const [proxies, proxyDispatcher] = useReducer(proxiesReducer, [], proxiesReducerInit);
   const [listLoading, setListLoading] = useState(false);
+  const refreshProxyAction = genRefreshProxiesAction(proxyDispatcher);
   const refreshMockerAction = genRefreshMockersAction(mockerDispatcher);
   const createMocker = genCreateMockersAction(mockerDispatcher);
   const updateMocker = genUpdateMockersAction(mockerDispatcher);
@@ -52,10 +56,11 @@ function ProxyAndMockersPage() {
       setListLoading(true)
       setTimeout(() => { 
         refreshMockerAction()
+        refreshProxyAction()
         setListLoading(false)
       }, 800)
     }
-  }, [mockers.length, refreshMockerAction]);
+  }, [mockers.length, refreshMockerAction, refreshProxyAction]);
 
 
   return (
@@ -74,8 +79,9 @@ function ProxyAndMockersPage() {
           icon={<RedoOutlined />}
           onClick={async () => {
             setListLoading(true)
-            await refreshMockerAction()
-            setTimeout(() => setListLoading(false), 800)
+            await refreshMockerAction();
+            await refreshProxyAction();
+            setTimeout(() => setListLoading(false), 650);
           }}>
         </Button>
       </ControlPanel>
@@ -98,6 +104,12 @@ function ProxyAndMockersPage() {
               })
             }}
             mockerDispatcher={mockerDispatcher}/>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={12}>
+          <Divider orientation="left">Proxies</Divider>
+          <ProxyList proxies={proxies}/>
         </Col>
       </Row>
       {mockerFormState.visible && (
