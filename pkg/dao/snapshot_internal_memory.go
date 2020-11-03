@@ -1,9 +1,11 @@
 package dao
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	"io/ioutil"
 	"sync"
 )
 
@@ -12,6 +14,11 @@ const (
 	ListenerPort = 10000
 	RouteName    = "route_01"
 )
+
+type ConfFile struct {
+	Mockers     []DirectResponse `json:"mockers"`
+	ProxyRoutes []ProxyRoute     `json:"proxyRoutes"`
+}
 
 func NewInternalMemorySnapshotDao() InternalMemorySnapshot {
 	return InternalMemorySnapshot{
@@ -155,4 +162,28 @@ func (i *InternalMemorySnapshot) GenerateSnapshot() (cache.Snapshot, error) {
 		src.runtimes,
 		src.secrets,
 	), nil
+}
+
+func (i *InternalMemorySnapshot) LoadFromFile(path string) error {
+	bs, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	c := &ConfFile{}
+	if err = json.Unmarshal(bs, c); err != nil {
+		return err
+	}
+
+	for _, p := range c.ProxyRoutes {
+		if err := i.UnshiftRouter(&p); err != nil {
+			return err
+		}
+	}
+	for _, m := range c.Mockers {
+		if err := i.UnshiftDirectRes(&m); err != nil {
+			return err
+		}
+	}
+	return nil
 }
