@@ -196,7 +196,10 @@ func (o OperationsEndpoints) AddMocker(_ context.Context, req *AddMockerReq) (*A
 		dr.Status = dao.StatusActive
 	}
 
-	if err := o.snapshotCtrl.UnshiftDirectResponse(dr, true); err != nil {
+	if err := o.snapshotCtrl.Dao.UnshiftDirectRes(dr); err != nil {
+		return nil, err
+	}
+	if err := o.snapshotCtrl.RefreshSnapshot(); err != nil {
 		return nil, err
 	}
 	return &AddMockerRes{Mocker: dr}, nil

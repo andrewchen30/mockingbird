@@ -26,26 +26,6 @@ func (ctrl *SnapshotController) Init() {
 	// TODO: import default setting
 }
 
-func (ctrl *SnapshotController) UnshiftRouter(ezr *dao.ProxyRoute, refresh bool) error {
-	if err := ctrl.Dao.UnshiftRouter(ezr); err != nil {
-		return err
-	}
-	if refresh {
-		return ctrl.RefreshSnapshot()
-	}
-	return nil
-}
-
-func (ctrl *SnapshotController) UnshiftDirectResponse(dr *dao.DirectResponse, refresh bool) error {
-	if err := ctrl.Dao.UnshiftDirectRes(dr); err != nil {
-		return nil
-	}
-	if refresh {
-		return ctrl.RefreshSnapshot()
-	}
-	return nil
-}
-
 func (ctrl *SnapshotController) RefreshSnapshot() error {
 	snapshot, err := ctrl.Dao.GenerateSnapshot()
 	if err != nil {
