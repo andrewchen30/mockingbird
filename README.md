@@ -1,5 +1,7 @@
 # Mockingbird
 
+![MockingbirdLogo](./docs/readme_banner.gif)
+
 An easy API proxy base on Envoy, Envoy management server and web GUI administrator.
 
 ## Features
