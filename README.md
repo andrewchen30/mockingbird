@@ -15,7 +15,13 @@ An easy API proxy base on Envoy, Envoy management server and web GUI administrat
 * Install [Docker](https://www.docker.com/)
 * Install [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Start Mockingbird
+### Start Mockingbird With Docker Image
+
+* [DockerHub](https://hub.docker.com/repository/docker/andrewchen20/mockingbird)
+
+### Start Mockingbird With Source Coe
+
+Clone this repository.
 
 ```sh
 > sh start.sh
@@ -24,7 +30,7 @@ An easy API proxy base on Envoy, Envoy management server and web GUI administrat
 You will see two container been started with `docker ps`.
 
 1. `envoyproxy/envoy-dev` - Mockingbird service base on this Envoy proxy.
-1. `envoy_management_server` - Include [Envoy xds](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/operations/dynamic_configuration), Mockingbird operation API and admin GUI web server.
+1. `mockingbird` - Include [Envoy xds](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/operations/dynamic_configuration), Mockingbird operation API and admin GUI web server.
 
 Open your browser [http://localhost:3000/admin](http://localhost:3000/admin) and press the `Get Start` button.
 

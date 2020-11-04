@@ -23,8 +23,8 @@ services:
       - '10001:10001'
     networks:
       - envoy-internal
-  management-server:
-    image: 'envoy_management_server:latest'
+  mockingbird:
+    image: 'mockingbird:latest'
     build:
       context: .
     ports:
