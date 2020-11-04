@@ -7,4 +7,4 @@ COPY mockingbird.config.json /src/mockingbird.config.json
 ENV PORT 4000
 EXPOSE $PORT
 
-ENTRYPOINT ["/management-server"]
+ENTRYPOINT ["/mockingbird"]
