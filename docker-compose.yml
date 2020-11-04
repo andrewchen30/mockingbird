@@ -22,7 +22,7 @@ services:
       - '10000:10000'
       - '10001:10001'
     networks:
-      - envoy-internal
+      - mockingbird-internal
   mockingbird:
     image: 'mockingbird:latest'
     build:
@@ -31,7 +31,7 @@ services:
       - '4000:4000'
       - '3000:3000'
     networks:
-      - envoy-internal
+      - mockingbird-internal
   build:
     image: 'golang:1.14'
     working_dir: /src
@@ -45,5 +45,5 @@ services:
       - make
 
 networks:
-  envoy-internal:
-    name: envoy-internal
+  mockingbird-internal:
+    name: mockingbird-internal
