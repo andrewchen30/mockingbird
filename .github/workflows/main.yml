@@ -15,4 +15,4 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
       - name: Build and Push 
-        run: sh ./.deploy/build.sh
+        run: sh ./build.sh
