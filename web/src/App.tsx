@@ -8,10 +8,9 @@ import HomePage from './pages/DocumentPage';
 import ProxyAndMockersPage from './pages/ProxyAndMockersPage';
 import './App.css';
 
+
 function App() {
-
   const {Sider, Content, Footer} = Layout
-
   return (
     <Container className="App">
       <BrowserRouter>
