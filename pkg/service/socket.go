@@ -6,11 +6,12 @@ import (
 )
 
 type SocketHandler struct {
-	Server *socket.Server
-	Logger *utils.Logger
+	Server    *socket.Server
+	Logger    *utils.Logger
+	NameSpace string
 }
 
-func NewSocketHandler(l *utils.Logger) (*SocketHandler, error) {
+func NewSocketHandler(NameSpace string, l *utils.Logger) (*SocketHandler, error) {
 	s, err := socket.NewServer(nil)
 	if err != nil {
 		return nil, err
@@ -28,35 +29,25 @@ func NewSocketHandler(l *utils.Logger) (*SocketHandler, error) {
 
 func (h *SocketHandler) InitHandlers() {
 
-	h.Server.OnConnect("/", func(s socket.Conn) error {
+	h.Server.OnConnect(h.NameSpace, func(s socket.Conn) error {
 		s.SetContext("")
 		h.Logger.Infof("connected:", s.ID())
 		return nil
 	})
 
-	h.Server.OnEvent("/", "notice", func(s socket.Conn, msg string) {
-		h.Logger.Infof("notice:", msg)
-		s.Emit("reply", "have "+msg)
-	})
-
-	h.Server.OnEvent("/chat", "msg", func(s socket.Conn, msg string) string {
-		s.SetContext(msg)
-		return "recv " + msg
-	})
-
-	h.Server.OnEvent("/", "bye", func(s socket.Conn) string {
-		last := s.Context().(string)
-		s.Emit("bye", last)
-		s.Close()
-		return last
-	})
-
-	h.Server.OnError("/", func(s socket.Conn, e error) {
+	h.Server.OnError(h.NameSpace, func(s socket.Conn, e error) {
 		h.Logger.Errorf("meet error:", e)
 	})
 
-	h.Server.OnDisconnect("/", func(s socket.Conn, msg string) {
+	h.Server.OnDisconnect(h.NameSpace, func(s socket.Conn, msg string) {
 		h.Logger.Errorf("closed", msg)
 	})
 
+}
+
+const StatusEventName = "status_event"
+
+type StatusEvent struct {
+	Envoy       string `json:"envoy"`
+	Mockingbird string `json:"mockingbird"`
 }
