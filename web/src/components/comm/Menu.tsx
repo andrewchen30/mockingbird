@@ -1,9 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { NavLink } from "react-router-dom";
-import { Menu, Progress, Tooltip } from 'antd'
-import { CloseCircleOutlined, CheckCircleOutlined, QuestionCircleOutlined} from '@ant-design/icons'
+import { Menu, Progress } from 'antd'
+import { CloseCircleOutlined, CheckCircleOutlined, QuestionCircleOutlined, SyncOutlined} from '@ant-design/icons'
 import { MENU } from '../../const/menu';
-import { socketCtx } from '../../utils/socket';
+import { pareEventData, socketCtx } from '../../utils/socket';
 import styled from 'styled-components';
 import { FRONT_ERROR, FRONT_SUCCESS, FRONT_WARNING } from '../../const/color';
 
@@ -27,46 +27,43 @@ function renderStatus(s: ConnStatus, serviceName: string): JSX.Element {
   switch (s) {
     case ConnStatus.alive:
       return (
-        <Tooltip placement="top" title='Is alive.'>
           <StatusItem>
             <td width={24}>
               <Progress percent={100} showInfo={false} steps={5} size="small" strokeColor={FRONT_SUCCESS}/>
             </td>
             <td width={12}>
-              <CheckCircleOutlined style={{ color: FRONT_SUCCESS }} />
+                <CheckCircleOutlined style={{ color: FRONT_SUCCESS }} />
             </td>
             <ServiceName>{serviceName}</ServiceName>
           </StatusItem>
-        </Tooltip>
       );
     case ConnStatus.disconnect:
       return (
-        <Tooltip placement="top" title='Disconnected.'>
           <StatusItem>
             <td>
               <Progress percent={33} showInfo={false} steps={5} size="small" strokeColor={FRONT_ERROR} />
             </td>
             <td>
-              <CloseCircleOutlined style={{ color: FRONT_ERROR }} />
+                <CloseCircleOutlined style={{ color: FRONT_ERROR }} />
             </td>
             <ServiceName>{serviceName}</ServiceName>
           </StatusItem>
-        </Tooltip>
       );
     case ConnStatus.unknown:
     default:
       return (
-        <Tooltip placement="top" title='Status unknown.'>
           <StatusItem>
             <td>
               <Progress percent={64} showInfo={false} steps={5} size="small" strokeColor={FRONT_WARNING} />
             </td>
             <td>
-              <QuestionCircleOutlined style={{ color: FRONT_WARNING }} />
+                <QuestionCircleOutlined style={{ color: FRONT_WARNING }} />
             </td>
-            <ServiceName>{serviceName}</ServiceName>
+            <ServiceName>
+              {serviceName}
+              <SyncOutlined spin style={{marginLeft: '4px'}} />
+            </ServiceName>
           </StatusItem>
-        </Tooltip>
       );
   }
 }
@@ -80,6 +77,16 @@ export default function MenuList() {
       setSocketState({
         mockingbird: ConnStatus.alive,
         envoy: ConnStatus.unknown
+      })
+    });
+    socket.on('status_event', function (data: any) {
+      const e = pareEventData<{ envoy: ConnStatus, mockingbird: ConnStatus }>(data);
+      if (!e) {
+        return;
+      }
+      setSocketState({
+        mockingbird: e.mockingbird,
+        envoy: e.envoy
       })
     });
     socket.on('disconnect', function () {
@@ -106,8 +113,10 @@ export default function MenuList() {
       ))}
 
       <StatusFooter>
-        {renderStatus(socketState.mockingbird, 'Mockingbird Service')}
-        {renderStatus(socketState.envoy, 'Envoy Proxy')}
+        <tbody>
+          {renderStatus(socketState.mockingbird, 'Mockingbird Service')}
+          {renderStatus(socketState.envoy, 'Envoy Proxy')}
+        </tbody>
       </StatusFooter>
     </Menu>
   )
