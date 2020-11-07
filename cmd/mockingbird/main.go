@@ -43,6 +43,12 @@ func main() {
 		logger.Errorf("snapshotCtrl refresh snapshot failed", err)
 	}
 
+	socketHandler, err := service.NewSocketHandler(&logger)
+
+	if err != nil {
+		logger.Errorf("start socket server fail")
+	}
+
 	managementServiceConfig := &service.EnvoyManagementServerConfig{
 		Port:               port,
 		Logger:             &logger,
@@ -54,8 +60,9 @@ func main() {
 	}
 
 	opBase := &service.OperationServerBase{
-		Logger:       &logger,
-		SnapshotCtrl: &snapshotCtrl,
+		Logger:        &logger,
+		SnapshotCtrl:  &snapshotCtrl,
+		SocketHandler: socketHandler,
 	}
 
 	RunServers(managementServiceConfig, opConf, opBase)
@@ -68,7 +75,19 @@ func RunServers(
 ) {
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
+
+	go func() {
+		defer func() {
+			opBase.SocketHandler.Server.Close()
+			wg.Done()
+		}()
+
+		log.Printf("socket handler will start serv")
+		if err := opBase.SocketHandler.Server.Serve(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	go func() {
 		defer wg.Done()
