@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 x-common-env:
   - LOGGER_LEVEL=debug
   - GOPATH=/src/.dockerbuild/gopath
@@ -43,6 +43,15 @@ services:
       - '.:/src'
     command:
       - make
+  build-web: # This command will take more than 14min... 
+    image: node:12-alpine
+    working_dir: /src/web
+    volumes:
+      - '.:/src'
+    command:
+      - yarn 
+      - run 
+      - build:prod
 
 networks:
   mockingbird-internal:
