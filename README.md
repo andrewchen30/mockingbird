@@ -1,5 +1,7 @@
 # Mockingbird
 
+![Release](https://github.com/PolarBearAndrew/mockingbird/workflows/Release/badge.svg?branch=main)
+
 ![MockingbirdLogo](./docs/readme_banner.gif)
 
 An easy API proxy base on Envoy, Envoy management server and web GUI administrator.
