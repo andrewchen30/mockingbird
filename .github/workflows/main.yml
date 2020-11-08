@@ -7,11 +7,6 @@ jobs:
     name: Building and push to DockerHub
     runs-on: ubuntu-latest
     steps:
-      - name: Discord bot
-        uses: sarisia/actions-status-discord@v1
-        if: always()
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
       - name: Login to DockerHub
         uses: docker/login-action@v1 
         with:
@@ -33,3 +28,13 @@ jobs:
       # build management server
       - name: Build The Server Image and Push to DockerHub
         run: sh ./build.sh
+      # Notification
+      - name: Discord bot
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        status: ${{ job.status }}
+        title: "Release"
+        description: "Build image and deploy to DockerHub"
+        username: GitHub Actions
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
