@@ -1,7 +1,7 @@
 name: Publish Docker image
 on:
   push:
-    branches: release
+    branches: main
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
@@ -15,13 +15,16 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
       # build web
-      - uses: borales/actions-yarn@v2.0.0
+      - name: Install Web Dep
+        uses: borales/actions-yarn@v2.0.0
+        working-directory: ./web
         with:
           cmd: --pure-lockfile
-      - uses: borales/actions-yarn@v2.0.0
+      - name: Build assets/admin
+        uses: borales/actions-yarn@v2.0.0
+        working-directory: ./web
         with:
           cmd: build
       # build management server
-      - uses: borales/actions-yarn@v2.0.0
       - name: Build and Push 
         run: sh ./build.sh
