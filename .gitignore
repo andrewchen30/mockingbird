@@ -147,3 +147,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+.vscode
+
+assets/admin
