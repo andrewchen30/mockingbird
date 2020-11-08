@@ -79,6 +79,7 @@ Not necessary right now. When we start provide more features, we will provide do
 * [envoyproxy/go-control-plan](https://github.com/envoyproxy/go-control-plane)
 * [ant-design](https://github.com/ant-design/ant-design/)
 * [create-react-app](https://github.com/facebook/create-react-app)
+* [socket.io](https://github.com/googollee/go-socket.io#example)
 
 ## Contributing
 
