@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "move-build": "rm -rf ../assets/admin && mv build ../assets/admin",
+    "move-build": "rm -rf ../assets && mkdir ../assets && mkdir ../assets/admin && mv build ../assets/admin",
     "build:prod": "yarn --pure-lockfile && yarn run build",
     "build": "react-scripts build && yarn run move-build",
     "test": "react-scripts test",

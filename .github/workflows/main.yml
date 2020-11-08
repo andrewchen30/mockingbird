@@ -4,7 +4,7 @@ on:
     branches: main
 jobs:
   push_to_registry:
-    name: Push Docker image to Docker Hub
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Login to DockerHub
@@ -15,16 +15,13 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
       # build web
-      - name: Install Web Dep
-        uses: borales/actions-yarn@v2.0.0
-        working-directory: ./web
+      - uses: actions/setup-node@v1
         with:
-          cmd: --pure-lockfile
-      - name: Build assets/admin
-        uses: borales/actions-yarn@v2.0.0
+          node-version: '12'
+      - run: yarn install --pure-lockfile
         working-directory: ./web
-        with:
-          cmd: build
+      - run: yarn build
+        working-directory: ./web
       # build management server
       - name: Build and Push 
         run: sh ./build.sh
