@@ -14,5 +14,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check out the repo
         uses: actions/checkout@v2
+      # build web
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: --pure-lockfile
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: build
+      # build management server
+      - uses: borales/actions-yarn@v2.0.0
       - name: Build and Push 
         run: sh ./build.sh

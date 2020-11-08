@@ -19,35 +19,40 @@ type OperationServerConf struct {
 }
 
 type OperationServerBase struct {
-	Logger       *utils.Logger
-	SnapshotCtrl *SnapshotController
+	Logger        *utils.Logger
+	SnapshotCtrl  *SnapshotController
+	SocketHandler *SocketHandler
 }
 
 func NewHttpOperationServer(opConf *OperationServerConf, base *OperationServerBase) *http.Server {
 
 	s := NewOperationServer(base)
 
+	cors := cors.New(cors.Options{
+		AllowCredentials: true,
+		AllowedMethods:   []string{"POST", "PUT", "DELETE", "GET", "OPTIONS"},
+		AllowedOrigins:   []string{"http://localhost:3001", "http://localhost:3000"},
+	})
+
 	router := mux.NewRouter()
+
 	router.Methods("GET").Path("/").HandlerFunc(s.Health)
 
-	router.Path("/api/proxy").Methods("GET").HandlerFunc(s.ListProxy)           // TODO: implement it
-	router.Path("/api/proxy").Methods("POST").HandlerFunc(s.AddProxy)           // TODO: implement it
-	router.Path("/api/proxy/{id}").Methods("PUT").HandlerFunc(s.UpdateProxy)    // TODO: implement it
-	router.Path("/api/proxy/{id}").Methods("DELETE").HandlerFunc(s.RemoveProxy) // TODO: implement it
+	router.Path("/api/proxy").Methods("GET").HandlerFunc(s.ListProxy)
+	router.Path("/api/proxy").Methods("POST").HandlerFunc(s.AddProxy)
+	router.Path("/api/proxy/{id}").Methods("PUT").HandlerFunc(s.UpdateProxy)
+	router.Path("/api/proxy/{id}").Methods("DELETE").HandlerFunc(s.RemoveProxy)
 
 	router.Path("/api/mocker").Methods("GET").HandlerFunc(s.ListMocker)
 	router.Path("/api/mocker").Methods("POST").HandlerFunc(s.AddMocker)
 	router.Path("/api/mocker/{id}").Methods("PUT").HandlerFunc(s.UpdateMocker)
 	router.Path("/api/mocker/{id}").Methods("DELETE").HandlerFunc(s.RemoveMocker)
 
-	router.PathPrefix("/admin").HandlerFunc(s.RenderAdmin)
-	router.PathPrefix("/static").Handler(http.StripPrefix("/static", http.FileServer(http.Dir("/assets/admin/static"))))
-
-	cors := cors.New(cors.Options{
-		AllowedMethods:   []string{"POST", "PUT", "DELETE", "GET"},
-		AllowedOrigins:   []string{"http://localhost:3001", "http://localhost:3000"},
-		AllowCredentials: true,
-	})
+	router.PathPrefix("/admin").Methods("GET").HandlerFunc(s.RenderAdmin)
+	router.PathPrefix("/static").Methods(http.MethodGet).Handler(
+		http.StripPrefix("/static", http.FileServer(http.Dir("/assets/admin/static"))),
+	)
+	router.PathPrefix("/socket.io").Handler(base.SocketHandler.Server)
 
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%d", opConf.Port),

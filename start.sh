@@ -2,6 +2,7 @@
 
 set -e
 
+# docker-compose run --rm build-web
 docker-compose run --rm build
 docker-compose build --force-rm mockingbird
 

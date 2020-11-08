@@ -38,8 +38,8 @@ function ProxyItem(props: Props) {
         <span></span>,
         <span></span>,
         <span></span>,
-        <DeleteOutlined key='delete' disabled />,
-        <EditOutlined key="edit" disabled />,
+        <DeleteOutlined key='delete' disabled style={{opacity: '.1'}} />,
+        <EditOutlined key="edit" disabled style={{ opacity: '.1' }}/>,
       ]}>
       <ProxyTagWrapper>
         <ProxyTag>
