@@ -12,6 +12,10 @@ An easy API proxy base on Envoy, Envoy management server and web GUI administrat
 * Proxy non-mock API to your original service.
 * Operate above mentioned features on a simple GUI.
 
+In the following picture, green line is normal traffics routing, red line is specific mock API provide by Mockingbird.
+
+![infra](./docs/mockingbird-infra.svg)
+
 ## Getting Started
 
 ### Setup Locally
