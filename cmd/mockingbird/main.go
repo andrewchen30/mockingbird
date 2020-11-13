@@ -17,21 +17,21 @@ import (
 var env Envs
 
 type XdsServerConfig struct {
-	Port                        uint   `long:"xds.port" description:"xDS management server port." default:"4000"`
-	EnvoyHost                   string `long:"xds.envoyHost" default:"http://envoy:10001"`
-	NodeID                      string `long:"xds.nodeId" description:"xDS node id." default:"mockingbird-default-id"`
-	RoutesDefaultConfigFilePath string `long:"xds.routesDefaultConfigFilePath" description:"routes default config file path" default:"/src/mockingbird.config.json"`
+	Port         uint   `long:"xds.port" env:"PORT" description:"xDS management server port." default:"4000"`
+	EnvoyHost    string `long:"xds.envoyHost" env:"ENVOY_HOST" default:"http://envoy:10001"`
+	NodeID       string `long:"xds.nodeId" env:NODE_ID"" description:"xDS node id." default:"mockingbird-default-id"`
+	RoutesConfig string `long:"xds.routesConfig" env:"ROUTES_CONFIG" description:"routes default config file path" default:"/src/mockingbird.config.json"`
 }
 
 type SocketConfig struct {
-	Namespace string `long:"socket.namespace" description:"namespace" default:"/"`
+	Namespace string `long:"socket.namespace" env:"NAMESPACE" description:"namespace" default:"/"`
 }
 
 type Envs struct {
-	Port uint `short:"p" long:"port" description:"operations server port." default:"3000"`
+	Port uint `short:"p" long:"port" env:"PORT" description:"operations server port." default:"3000"`
 
-	SocketConfig    SocketConfig    `group:"socket" description:"socket config."`
-	XdsServerConfig XdsServerConfig `group:"xds" description:"xDS management server configs."`
+	SocketConfig    SocketConfig    `group:"socket" env:"SOCKET" description:"socket config."`
+	XdsServerConfig XdsServerConfig `group:"xds" env:"XDS_SERVER" description:"xDS management server configs."`
 }
 
 func initEnv() error {
@@ -54,7 +54,7 @@ func main() {
 	snapshotCtrl := service.NewSnapshotController(env.XdsServerConfig.NodeID, &snapshotInternalMemoryDao, logger)
 
 	err := snapshotCtrl.Init(service.InitOpt{
-		InitFile: env.XdsServerConfig.RoutesDefaultConfigFilePath,
+		InitFile: env.XdsServerConfig.RoutesConfig,
 	})
 
 	if err != nil {
