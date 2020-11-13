@@ -3,9 +3,12 @@ import styled from 'styled-components'
 import { Typography, Card, Tag } from 'antd'
 import { IProxy } from '../../interfaces/Proxy';
 import { EditOutlined, LoadingOutlined, DeleteOutlined } from '@ant-design/icons';
+import { notifier } from '../../utils/notify';
 
 interface Props {
   proxy: IProxy;
+  onEditBtnClick: (proxyId: number) => void
+  onDeleteBtnClick: (proxyId: number) => void
 }
 
 function ProxyItem(props: Props) {
@@ -26,7 +29,7 @@ function ProxyItem(props: Props) {
       hoverable
       bordered={false}
       extra={(<div style={{ padding: '4px 12px' }}>{proxyStatus}</div>)}
-      title={`${proxy.reqMethod} ${proxy.prefix}`}
+      title={`${proxy.reqMethod} ${proxy.upstreamHost}:${proxy.upstreamPort}${proxy.prefix}`}
       style={{
         marginBottom: '24px',
         opacity: proxy.status === 'active' ? 1 : '.5'
@@ -38,8 +41,20 @@ function ProxyItem(props: Props) {
         <span></span>,
         <span></span>,
         <span></span>,
-        <DeleteOutlined key='delete' disabled style={{opacity: '.1'}} />,
-        <EditOutlined key="edit" disabled style={{ opacity: '.1' }}/>,
+        <DeleteOutlined key='delete' onClick={() => {
+          if (!proxy.id) {
+            notifier.warning('MockerId not found', '');
+            return;
+          }
+          props.onDeleteBtnClick(proxy.id)
+        }} />,
+        <EditOutlined key="edit" onClick={() => {
+          if (!proxy.id) {
+            notifier.warning('MockerId not found', '');
+            return;
+          }
+          props.onEditBtnClick(proxy.id);
+        }} />
       ]}>
       <ProxyTagWrapper>
         <ProxyTag>
