@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jessevdk/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/lab-envoy/pkg/dao"
 	"github.com/lab-envoy/pkg/service"
 	"github.com/lab-envoy/pkg/utils"
@@ -14,46 +14,48 @@ import (
 	"time"
 )
 
-var env Envs
-
 type XdsServerConfig struct {
 	Port         uint   `long:"xds.port" env:"PORT" description:"xDS management server port." default:"4000"`
-	EnvoyHost    string `long:"xds.envoyHost" env:"ENVOY_HOST" default:"http://envoy:10001"`
-	NodeID       string `long:"xds.nodeId" env:NODE_ID"" description:"xDS node id." default:"mockingbird-default-id"`
-	RoutesConfig string `long:"xds.routesConfig" env:"ROUTES_CONFIG" description:"routes default config file path" default:"/src/mockingbird.config.json"`
+	EnvoyHost    string `long:"envoyHost" env:"ENVOY_HOST" default:"http://envoy:10001"`
+	NodeID       string `long:"nodeId" env:"NODE_ID" description:"xDS node id." default:"mockingbird-default-id"`
+	RoutesConfig string `long:"routesConfig" env:"ROUTES_CONFIG" description:"routes default config file path" default:"/src/mockingbird.config.json"`
 }
 
 type SocketConfig struct {
-	Namespace string `long:"socket.namespace" env:"NAMESPACE" description:"namespace" default:"/"`
+	Namespace string `long:"namespace" env:"NAMESPACE" description:"namespace" default:"/"`
 }
 
 type Envs struct {
-	Port uint `short:"p" long:"port" env:"PORT" description:"operations server port." default:"3000"`
+	Port uint `long:"port" env:"PORT" description:"operations server port." default:"3000"`
 
-	SocketConfig    SocketConfig    `group:"socket" env:"SOCKET" description:"socket config."`
-	XdsServerConfig XdsServerConfig `group:"xds" env:"XDS_SERVER" description:"xDS management server configs."`
+	SocketConfig    SocketConfig    `group:"Socket" namespace:"socket" env-namespace:"SOCKET"`
+	XdsServerConfig XdsServerConfig `group:"Xds" namespace:"xds" env-namespace:"XDS_SERVER"`
 }
 
-func initEnv() error {
+func initEnv() (*Envs, error) {
+	var env Envs
 	_, err := flags.NewParser(&env, flags.Default).Parse()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &env, nil
 }
 
 func main() {
 	logger := utils.Logger{}
 
-	if err := initEnv(); err != nil {
+	env, err := initEnv()
+	if err != nil {
 		logger.Errorf("parse log failed", err)
 		return
 	}
 
+	log.Print("Env", env)
+
 	snapshotInternalMemoryDao := dao.NewInternalMemorySnapshotDao()
 	snapshotCtrl := service.NewSnapshotController(env.XdsServerConfig.NodeID, &snapshotInternalMemoryDao, logger)
 
-	err := snapshotCtrl.Init(service.InitOpt{
+	err = snapshotCtrl.Init(service.InitOpt{
 		InitFile: env.XdsServerConfig.RoutesConfig,
 	})
 
@@ -71,7 +73,7 @@ func main() {
 		logger.Errorf("start socket server fail")
 	}
 
-	managementServiceConfig := &service.EnvoyManagementServerConfig{
+	xDsServConfig := &service.EnvoyManagementServerConfig{
 		Port:               env.XdsServerConfig.Port,
 		Logger:             &logger,
 		SnapshotController: &snapshotCtrl,
@@ -87,10 +89,11 @@ func main() {
 		SocketHandler: socketHandler,
 	}
 
-	RunServers(managementServiceConfig, opConf, opBase)
+	RunServers(env, xDsServConfig, opConf, opBase)
 }
 
 func RunServers(
+	env *Envs,
 	m *service.EnvoyManagementServerConfig,
 	opConf *service.OperationServerConf,
 	opBase *service.OperationServerBase,
