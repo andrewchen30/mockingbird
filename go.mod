@@ -10,6 +10,7 @@ require (
 	github.com/googollee/go-socket.io v1.4.4
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
+	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/rs/cors v1.7.0
 	google.golang.org/grpc v1.27.0
 )

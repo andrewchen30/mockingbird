@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"github.com/lab-envoy/pkg/dao"
 	"github.com/lab-envoy/pkg/service"
 	"github.com/lab-envoy/pkg/utils"
@@ -14,34 +14,47 @@ import (
 	"time"
 )
 
-var (
-	logger          utils.Logger
-	port            uint
-	nodeID          string
-	routesConfFile  string
-	socketNamespace string
-	envoyHost       string
-)
+var env Envs
 
-func init() {
-	logger = utils.Logger{}
-	flag.BoolVar(&logger.Debug, "debug", false, "Enable xDS server debug logging")
-	flag.UintVar(&port, "port", 4000, "xDS management server port")
-	flag.StringVar(&socketNamespace, "nsp", "/", "Socket nsp")
-	flag.StringVar(&nodeID, "nodeID", "mockingbird-default-id", "Node ID")
-	flag.StringVar(&routesConfFile, "routesConfFile", "/src/mockingbird.config.json", "Routes config file path")
-	flag.StringVar(&envoyHost, "envoyHost", "http://envoy:10001", "Envoy host")
+type XdsServerConfig struct {
+	Port                        uint   `long:"xds.port" description:"xDS management server port." default:"4000"`
+	EnvoyHost                   string `long:"xds.envoyHost" default:"http://envoy:10001"`
+	NodeID                      string `long:"xds.nodeId" description:"xDS node id." default:"mockingbird-default-id"`
+	RoutesDefaultConfigFilePath string `long:"xds.routesDefaultConfigFilePath" description:"routes default config file path" default:"/src/mockingbird.config.json"`
+}
+
+type SocketConfig struct {
+	Namespace string `long:"socket.namespace" description:"namespace" default:"/"`
+}
+
+type Envs struct {
+	Port uint `short:"p" long:"port" description:"operations server port." default:"3000"`
+
+	SocketConfig    SocketConfig    `group:"socket" description:"socket config."`
+	XdsServerConfig XdsServerConfig `group:"xds" description:"xDS management server configs."`
+}
+
+func initEnv() error {
+	_, err := flags.NewParser(&env, flags.Default).Parse()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func main() {
+	logger := utils.Logger{}
 
-	flag.Parse()
+	if err := initEnv(); err != nil {
+		logger.Errorf("parse log failed", err)
+		return
+	}
 
 	snapshotInternalMemoryDao := dao.NewInternalMemorySnapshotDao()
-	snapshotCtrl := service.NewSnapshotController(nodeID, &snapshotInternalMemoryDao, logger)
+	snapshotCtrl := service.NewSnapshotController(env.XdsServerConfig.NodeID, &snapshotInternalMemoryDao, logger)
 
 	err := snapshotCtrl.Init(service.InitOpt{
-		InitFile: routesConfFile,
+		InitFile: env.XdsServerConfig.RoutesDefaultConfigFilePath,
 	})
 
 	if err != nil {
@@ -59,13 +72,13 @@ func main() {
 	}
 
 	managementServiceConfig := &service.EnvoyManagementServerConfig{
-		Port:               port,
+		Port:               env.XdsServerConfig.Port,
 		Logger:             &logger,
 		SnapshotController: &snapshotCtrl,
 	}
 
 	opConf := &service.OperationServerConf{
-		Port: 3000,
+		Port: env.Port,
 	}
 
 	opBase := &service.OperationServerBase{
@@ -122,17 +135,17 @@ func RunServers(
 			Mockingbird: "alive",
 		}
 		for {
-			rooms := opBase.SocketHandler.Server.Rooms(socketNamespace)
+			rooms := opBase.SocketHandler.Server.Rooms(env.SocketConfig.Namespace)
 			bs, _ := json.Marshal(s)
 			for _, r := range rooms {
-				opBase.SocketHandler.Server.BroadcastToRoom(socketNamespace, r, service.StatusEventName, string(bs))
+				opBase.SocketHandler.Server.BroadcastToRoom(env.SocketConfig.Namespace, r, service.StatusEventName, string(bs))
 			}
 			if s.Envoy == "alive" {
 				time.Sleep(time.Minute)
 			} else {
 				time.Sleep(15 * time.Second)
 			}
-			res, err := http.Get(fmt.Sprintf("%s/ready", envoyHost))
+			res, err := http.Get(fmt.Sprintf("%s/ready", env.XdsServerConfig.EnvoyHost))
 			if err != nil {
 				log.Println("get err", err)
 				s.Envoy = "disconnect"
