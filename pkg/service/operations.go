@@ -103,11 +103,12 @@ type UpdateProxyReq struct {
 }
 
 type UpdateProxyRes struct {
-	Proxy *dao.ProxyRoute
+	Proxy *dao.ProxyRoute `json:"proxy"`
 }
 
 func (o OperationsEndpoints) UpdateProxy(_ context.Context, req *UpdateProxyReq) (*UpdateProxyRes, error) {
 	p := &dao.ProxyRoute{
+		ID:           req.ID,
 		Status:       req.Status,
 		Desc:         req.Desc,
 		Prefix:       req.Prefix,

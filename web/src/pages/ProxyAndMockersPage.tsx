@@ -5,6 +5,11 @@ import { Button, Divider, Row, Col } from 'antd'
 import PageHeader from '../components/comm/PageHeader';
 import MockerForm from '../components/mockers/MockerForm';
 import MockerList from '../components/mockers/MockerList';
+import { IMocker } from '../interfaces/Mocker';
+import { notifier } from '../utils/notify';
+import ProxyList from '../components/proxies/ProxyList';
+import { IProxy } from '../interfaces/Proxy';
+import ProxyForm from '../components/proxies/ProxyForm';
 import { 
   genCreateMockersAction,
   genDeleteMockersAction,
@@ -13,10 +18,14 @@ import {
   mockersReducer,
   mockersReducerInit
 } from '../store/mockers';
-import { IMocker } from '../interfaces/Mocker';
-import { notifier } from '../utils/notify';
-import { genRefreshProxiesAction, proxiesReducer, proxiesReducerInit } from '../store/proxies';
-import ProxyList from '../components/proxies/ProxyList';
+import {
+  genCreateProxiesAction,
+  genDeleteProxiesAction,
+  genRefreshProxiesAction,
+  genUpdateProxiesAction,
+  proxiesReducer,
+  proxiesReducerInit
+} from '../store/proxies';
 
 const DefaultMocker: IMocker = {
   prefix: '', 
@@ -28,7 +37,18 @@ const DefaultMocker: IMocker = {
   status: 'active'
 }
 
-type MockerFormState = {
+const DefaultProxy: IProxy = {
+  prefix: '/',
+  reqMethod: '*',
+  desc: '',
+  createBy: 'AndrewChen',
+  status: 'active',
+  upstreamName: '',
+  upstreamHost: '',
+  upstreamPort: 3000
+}
+
+type FormState<T> = {
   visible: false;
 } |{
   visible: true;
@@ -36,7 +56,7 @@ type MockerFormState = {
 } | {
   visible: true;
   action: 'toUpdate';
-  data: IMocker
+  data: T
 }
 
 function ProxyAndMockersPage() {
@@ -48,7 +68,12 @@ function ProxyAndMockersPage() {
   const createMocker = genCreateMockersAction(mockerDispatcher);
   const updateMocker = genUpdateMockersAction(mockerDispatcher);
   const deleteMocker = genDeleteMockersAction(mockerDispatcher);
-  const [mockerFormState, setMockerFormState] = useState<MockerFormState>({ visible: false });
+  const createProxy = genCreateProxiesAction(proxyDispatcher);
+  const updateProxy = genUpdateProxiesAction(proxyDispatcher);
+  const deleteProxy = genDeleteProxiesAction(proxyDispatcher);
+
+  const [mockerFormState, setMockerFormState] = useState<FormState<IMocker>>({ visible: false });
+  const [proxyFormState, setProxyFormState] = useState<FormState<IProxy>>({ visible: false });
 
 
   useEffect(() => {
@@ -108,8 +133,39 @@ function ProxyAndMockersPage() {
       </Row>
       <Row gutter={16}>
         <Col span={12}>
+          <ControlPanel>
+            <Button
+              shape='circle'
+              loading={listLoading}
+              icon={<RedoOutlined />}
+              onClick={async () => {
+                setListLoading(true)
+                await refreshMockerAction();
+                await refreshProxyAction();
+                setTimeout(() => setListLoading(false), 650);
+              }}>
+            </Button>
+          </ControlPanel>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={12}>
           <Divider orientation="left">Proxies</Divider>
-          <ProxyList proxies={proxies}/>
+          <ProxyList
+            proxies={proxies}
+            onDeleteBtnClick={deleteProxy}
+            onEditBtnClick={(proxyId: number) => {
+              const target = proxies.find((m) => m.id === proxyId)
+              if (!target) {
+                notifier.warning('Start editor failed', `Proxy ${proxyId} not found`);
+                return;
+              }
+              setProxyFormState({
+                visible: true,
+                action: 'toUpdate',
+                data: target
+              })
+            }} />
         </Col>
       </Row>
       {mockerFormState.visible && (
@@ -147,6 +203,40 @@ function ProxyAndMockersPage() {
             }
             if (success) {
               setMockerFormState({ visible: false })
+            }
+          }}
+        />
+      )}
+
+      {proxyFormState.visible && (
+        <ProxyForm
+          action={proxyFormState.action}
+          visible={proxyFormState.visible}
+          data={(
+            proxyFormState.action === 'toUpdate' ? proxyFormState.data : { ...DefaultProxy }
+          )}
+          onClose={() => setProxyFormState({ visible: false })}
+          onComplete={async (data) => {
+            let success: boolean = false;
+            const payload: IProxy = {
+              prefix: data.prefix,
+              reqMethod: data.reqMethod,
+              desc: data.desc,
+              createBy: data.createBy,
+              status: data.status,
+              upstreamName: data.upstreamName,
+              upstreamHost: data.upstreamHost,
+              upstreamPort: data.upstreamPort
+            };
+
+            if (proxyFormState.action === 'toCreate') {
+              success = await createProxy(payload);
+            }
+            else if (proxyFormState.action === 'toUpdate') {
+              success = await updateProxy({ id: data.id, ...payload });
+            }
+            if (success) {
+              setProxyFormState({ visible: false })
             }
           }}
         />

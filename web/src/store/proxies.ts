@@ -1,6 +1,7 @@
 import { Dispatch } from 'react';
-import { listProxies } from '../api/proxies';
+import { createProxy, deleteProxy, listProxies, updateProxy } from '../api/proxies';
 import { IProxy } from "../interfaces/Proxy";
+import { notifier } from '../utils/notify';
 
 enum ProxiesActionType {
   RefreshList,
@@ -57,4 +58,68 @@ export function genRefreshProxiesAction(dispatch: ProxyDispatcher): () => Promis
       payload: res.proxies
     });
   };
+}
+
+export function genUpdateProxiesAction(dispatch: ProxyDispatcher): (m: IProxy) => Promise<boolean> {
+  return async (p: IProxy) => {
+    dispatch({
+      type: ProxiesActionType.UpdateProxy,
+      payload: { ...p, status: 'updating' }
+    });
+
+    const res = await updateProxy({ ...p });
+    if (!res.proxy) {
+      dispatch({
+        type: ProxiesActionType.UpdateProxy,
+        payload: { ...p }
+      });
+      return false
+    }
+
+    // TODO: check envoy status
+    notifier.success(
+      `Successfully update proxy.`,
+      'Please wait few second for the backend service to update the Envoy proxy.'
+    )
+    dispatch({
+      type: ProxiesActionType.UpdateProxy,
+      payload: { ...res.proxy }
+    });
+    return true;
+  }
+}
+
+export function genCreateProxiesAction(dispatch: ProxyDispatcher): (m: IProxy) => Promise<boolean> {
+  return async (m: IProxy) => {
+    const res = await createProxy({ ...m });
+    if (!res.proxy) {
+      return false
+    }
+    // TODO: check envoy status
+    notifier.success(
+      `Successfully create a new proxy.`,
+      'Please wait few second for the backend service to update the Envoy proxy.'
+    )
+    dispatch({
+      type: ProxiesActionType.AddProxy,
+      payload: { ...res.proxy }
+    });
+    return true;
+  }
+}
+
+export function genDeleteProxiesAction(dispatch: ProxyDispatcher): (proxyId: number) => Promise<boolean> {
+  return async (proxyId: number) => {
+    const success = await deleteProxy(proxyId);
+    // TODO: check envoy status
+    if (!success) {
+      return false;
+    }
+    notifier.success(
+      `Successfully create a new proxy.`,
+      'Please wait few second for the backend service to update the Envoy proxy.'
+    );
+    dispatch({ type: ProxiesActionType.RemoveProxy, payload: { id: proxyId } });
+    return true;
+  }
 }
