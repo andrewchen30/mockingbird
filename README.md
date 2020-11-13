@@ -27,30 +27,8 @@ In the following picture, green line is normal traffics routing, red line is spe
 
 * [DockerHub](https://hub.docker.com/repository/docker/andrewchen20/mockingbird)
 * Here is the [example](https://github.com/PolarBearAndrew/mockingbird-example)
-
-```yaml
-version: '3.4'
-services:
-  mockingbird-server:
-    image: 'andrewchen20/mockingbird:latest'
-    ports:
-      - '4000:4000'
-      - '3000:3000'
-    networks:
-      - mockingbird-internal
-  envoy:
-    image: 'envoyproxy/envoy-dev:b055dd082c0a49525a97cea6604ac1323a55d2fb'
-    volumes:
-      - './envoy_config.yaml:/etc/envoy/envoy.yaml'
-    ports:
-      - '10000:10000'
-      - '10001:10001'
-    networks:
-      - mockingbird-internal
-networks:
-  mockingbird-internal:
-    name: mockingbird-internal
-```
+  * Mockingbird will running on ```http://localhost:10000/*```
+  * Mockingbird GUI admin will running on ```http://localhost:3000/admin```
 
 ### Start Mockingbird With Source Coe
 
