@@ -32,6 +32,9 @@ services:
       - '3000:3000'
     networks:
       - mockingbird-internal
+    environment: 
+      - SOCKET_NAMESPACE=xxx
+      - PORT=3001
   build:
     image: 'golang:1.14'
     working_dir: /src
