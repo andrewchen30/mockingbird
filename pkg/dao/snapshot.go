@@ -171,19 +171,24 @@ func makeRoute(routeName string, easyRoutes []ProxyRoute, directRes []DirectResp
 		if ez.Status != StatusActive {
 			continue
 		}
-		routes = append(routes, &route.Route{
+
+		var headerMatchers []*route.HeaderMatcher
+
+		if ez.ReqMethod != "*" {
+			headerMatchers = append(headerMatchers, &route.HeaderMatcher{
+				Name:                 EnvoyHttpMethodHeaderKey,
+				HeaderMatchSpecifier: &route.HeaderMatcher_ExactMatch{ExactMatch: ez.ReqMethod},
+				InvertMatch:          false,
+			})
+		}
+
+		newRoute := &route.Route{
 			ResponseHeadersToAdd: makeHeaderValueOptions(map[string]string{
 				"x-mockingbird-type": "proxy",
 				"x-mockingbird-name": fmt.Sprintf("%s/%d", ez.CreateBy, ez.ID),
 			}),
 			Match: &route.RouteMatch{
-				Headers: []*route.HeaderMatcher{
-					{
-						Name:                 EnvoyHttpMethodHeaderKey,
-						HeaderMatchSpecifier: &route.HeaderMatcher_ExactMatch{ExactMatch: ez.ReqMethod},
-						InvertMatch:          false,
-					},
-				},
+				Headers: headerMatchers,
 				PathSpecifier: &route.RouteMatch_Prefix{
 					Prefix: ez.Prefix,
 				},
@@ -198,7 +203,9 @@ func makeRoute(routeName string, easyRoutes []ProxyRoute, directRes []DirectResp
 					},
 				},
 			},
-		})
+		}
+
+		routes = append(routes, newRoute)
 	}
 
 	return &route.RouteConfiguration{
