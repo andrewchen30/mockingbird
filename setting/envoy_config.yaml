@@ -23,7 +23,7 @@ static_resources:
 
 node:
   cluster: dev-cluster
-  id: test-id
+  id: mockingbird-default-id
 
 dynamic_resources:
   ads_config:
