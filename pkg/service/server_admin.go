@@ -14,19 +14,16 @@ import (
 	"strconv"
 )
 
-type OperationServerConf struct {
-	Port uint
-}
-
-type OperationServerBase struct {
+type AdminServerConfig struct {
+	Port          uint
 	Logger        *utils.Logger
 	SnapshotCtrl  *SnapshotController
 	SocketHandler *SocketHandler
 }
 
-func NewHttpOperationServer(opConf *OperationServerConf, base *OperationServerBase) *http.Server {
+func NewHttpAdminServer(c *AdminServerConfig) *http.Server {
 
-	s := NewOperationServer(base)
+	s := NewAdminServer(c)
 
 	cors := cors.New(cors.Options{
 		AllowCredentials: true,
@@ -52,30 +49,29 @@ func NewHttpOperationServer(opConf *OperationServerConf, base *OperationServerBa
 	router.PathPrefix("/static").Methods(http.MethodGet).Handler(
 		http.StripPrefix("/static", http.FileServer(http.Dir("/assets/admin/static"))),
 	)
-	router.PathPrefix("/socket.io").Handler(base.SocketHandler.Server)
+	router.PathPrefix("/socket.io").Handler(c.SocketHandler.Server)
 
 	return &http.Server{
-		Addr:    fmt.Sprintf(":%d", opConf.Port),
+		Addr:    fmt.Sprintf(":%d", c.Port),
 		Handler: cors.Handler(router),
 	}
 }
 
-type OperationServer struct {
-	formDecoder         *schema.Decoder
-	operationsEndpoints *OperationsEndpoints
+type AdminServer struct {
+	formDecoder  *schema.Decoder
+	adminService *AdminService
 }
 
-func NewOperationServer(base *OperationServerBase) *OperationServer {
+func NewAdminServer(base *AdminServerConfig) *AdminServer {
 	formDecoder := schema.NewDecoder()
 	formDecoder.SetAliasTag("json")
-
-	return &OperationServer{
-		formDecoder:         formDecoder,
-		operationsEndpoints: NewOperationsEndpoints(base),
+	return &AdminServer{
+		formDecoder:  formDecoder,
+		adminService: NewAdminService(base),
 	}
 }
 
-func (s *OperationServer) injectReqParam(m map[string]string, body *interface{}) error {
+func (s *AdminServer) injectReqParam(m map[string]string, body *interface{}) error {
 
 	params := map[string]interface{}{}
 
@@ -105,7 +101,7 @@ func (s *OperationServer) injectReqParam(m map[string]string, body *interface{})
 	return nil
 }
 
-func (s *OperationServer) parseReqBody(r *http.Request, body interface{}) error {
+func (s *AdminServer) parseReqBody(r *http.Request, body interface{}) error {
 	// parse query string
 	r.ParseMultipartForm(33554432)
 	if err := s.formDecoder.Decode(body, r.Form); err != nil {
@@ -129,7 +125,7 @@ func (s *OperationServer) parseReqBody(r *http.Request, body interface{}) error 
 	return nil
 }
 
-func (s *OperationServer) renderResBody(w http.ResponseWriter, status int, bs []byte) {
+func (s *AdminServer) renderResBody(w http.ResponseWriter, status int, bs []byte) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
@@ -138,7 +134,7 @@ func (s *OperationServer) renderResBody(w http.ResponseWriter, status int, bs []
 	}
 }
 
-func (s *OperationServer) Health(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) Health(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &HealthReq{}
 		resBody = &HealthRes{}
@@ -147,7 +143,7 @@ func (s *OperationServer) Health(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.Health(context.Background(), reqBody)
+	resBody, err := s.adminService.Health(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -160,7 +156,7 @@ func (s *OperationServer) Health(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 200, result)
 }
 
-func (s *OperationServer) AddProxy(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) AddProxy(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &AddProxyReq{}
 		resBody = &AddProxyRes{}
@@ -169,7 +165,7 @@ func (s *OperationServer) AddProxy(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.AddProxy(context.Background(), reqBody)
+	resBody, err := s.adminService.AddProxy(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -182,7 +178,7 @@ func (s *OperationServer) AddProxy(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 201, result)
 }
 
-func (s *OperationServer) UpdateProxy(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) UpdateProxy(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &UpdateProxyReq{}
 		resBody = &UpdateProxyRes{}
@@ -191,7 +187,7 @@ func (s *OperationServer) UpdateProxy(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.UpdateProxy(context.Background(), reqBody)
+	resBody, err := s.adminService.UpdateProxy(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -204,7 +200,7 @@ func (s *OperationServer) UpdateProxy(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 200, result)
 }
 
-func (s *OperationServer) ListProxy(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) ListProxy(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &ListProxyReq{}
 		resBody = &ListProxyRes{}
@@ -213,7 +209,7 @@ func (s *OperationServer) ListProxy(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.ListProxy(context.Background(), reqBody)
+	resBody, err := s.adminService.ListProxy(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -226,7 +222,7 @@ func (s *OperationServer) ListProxy(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 200, result)
 }
 
-func (s *OperationServer) RemoveProxy(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) RemoveProxy(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &RemoveProxyReq{}
 		resBody = &RemoveProxyRes{}
@@ -235,7 +231,7 @@ func (s *OperationServer) RemoveProxy(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.RemoveProxy(context.Background(), reqBody)
+	resBody, err := s.adminService.RemoveProxy(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -248,7 +244,7 @@ func (s *OperationServer) RemoveProxy(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 204, result)
 }
 
-func (s *OperationServer) AddMocker(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) AddMocker(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &AddMockerReq{}
 		ctx     = context.Background()
@@ -259,7 +255,7 @@ func (s *OperationServer) AddMocker(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.AddMocker(ctx, reqBody)
+	resBody, err := s.adminService.AddMocker(ctx, reqBody)
 
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
@@ -273,7 +269,7 @@ func (s *OperationServer) AddMocker(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 201, result)
 }
 
-func (s *OperationServer) UpdateMocker(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) UpdateMocker(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &UpdateMockerReq{}
 		resBody = &UpdateMockerRes{}
@@ -282,7 +278,7 @@ func (s *OperationServer) UpdateMocker(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.UpdateMocker(context.Background(), reqBody)
+	resBody, err := s.adminService.UpdateMocker(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -295,7 +291,7 @@ func (s *OperationServer) UpdateMocker(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 200, result)
 }
 
-func (s *OperationServer) ListMocker(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) ListMocker(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &ListMockerReq{}
 		resBody = &ListMockerRes{}
@@ -304,7 +300,7 @@ func (s *OperationServer) ListMocker(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.ListMocker(context.Background(), reqBody)
+	resBody, err := s.adminService.ListMocker(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
@@ -317,7 +313,7 @@ func (s *OperationServer) ListMocker(w http.ResponseWriter, r *http.Request) {
 	s.renderResBody(w, 200, result)
 }
 
-func (s *OperationServer) RemoveMocker(w http.ResponseWriter, r *http.Request) {
+func (s *AdminServer) RemoveMocker(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody = &RemoveMockerReq{}
 		resBody = &RemoveMockerRes{}
@@ -326,7 +322,7 @@ func (s *OperationServer) RemoveMocker(w http.ResponseWriter, r *http.Request) {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return
 	}
-	resBody, err := s.operationsEndpoints.RemoveMocker(context.Background(), reqBody)
+	resBody, err := s.adminService.RemoveMocker(context.Background(), reqBody)
 	if err != nil {
 		s.renderResBody(w, 500, []byte(err.Error()))
 		return

@@ -15,9 +15,9 @@ import (
 )
 
 type XdsServerConfig struct {
-	Port         uint   `long:"xds.port" env:"PORT" description:"xDS management server port." default:"4000"`
+	Port         uint   `long:"xds.port" env:"PORT" description:"xds server port." default:"4000"`
 	EnvoyHost    string `long:"envoyHost" env:"ENVOY_HOST" default:"http://envoy:10001"`
-	NodeID       string `long:"nodeId" env:"NODE_ID" description:"xDS node id." default:"mockingbird-default-id"`
+	NodeID       string `long:"nodeId" env:"NODE_ID" description:"xds node id." default:"mockingbird-default-id"`
 	RoutesConfig string `long:"routesConfig" env:"ROUTES_CONFIG" description:"routes default config file path" default:"/src/mockingbird.config.json"`
 }
 
@@ -26,7 +26,7 @@ type SocketConfig struct {
 }
 
 type Envs struct {
-	Port uint `long:"port" env:"PORT" description:"operations server port." default:"3000"`
+	Port uint `long:"port" env:"OP_PORT" description:"admin server port." default:"3000"`
 
 	SocketConfig    SocketConfig    `group:"Socket" namespace:"socket" env-namespace:"SOCKET"`
 	XdsServerConfig XdsServerConfig `group:"Xds" namespace:"xds" env-namespace:"XDS_SERVER"`
@@ -73,30 +73,26 @@ func main() {
 		logger.Errorf("start socket server fail")
 	}
 
-	xDsServConfig := &service.EnvoyManagementServerConfig{
+	envoyXdsConfig := &service.EnvoyXdsConfig{
 		Port:               env.XdsServerConfig.Port,
 		Logger:             &logger,
 		SnapshotController: &snapshotCtrl,
 	}
 
-	opConf := &service.OperationServerConf{
-		Port: env.Port,
-	}
-
-	opBase := &service.OperationServerBase{
+	opBase := &service.AdminServerConfig{
+		Port:          env.Port,
 		Logger:        &logger,
 		SnapshotCtrl:  &snapshotCtrl,
 		SocketHandler: socketHandler,
 	}
 
-	RunServers(env, xDsServConfig, opConf, opBase)
+	RunServers(env, envoyXdsConfig, opBase)
 }
 
 func RunServers(
 	env *Envs,
-	m *service.EnvoyManagementServerConfig,
-	opConf *service.OperationServerConf,
-	opBase *service.OperationServerBase,
+	xdsConfig *service.EnvoyXdsConfig,
+	adminConfig *service.AdminServerConfig,
 ) {
 
 	var wg sync.WaitGroup
@@ -104,12 +100,12 @@ func RunServers(
 
 	go func() {
 		defer func() {
-			opBase.SocketHandler.Server.Close()
+			adminConfig.SocketHandler.Server.Close()
 			wg.Done()
 		}()
 
 		log.Printf("socket handler will start serv")
-		if err := opBase.SocketHandler.Server.Serve(); err != nil {
+		if err := adminConfig.SocketHandler.Server.Serve(); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -117,8 +113,8 @@ func RunServers(
 	go func() {
 		defer wg.Done()
 
-		log.Printf("management server will listen on %d\n", m.Port)
-		if err, _ := service.NewGRCPManagementServer(m); err != nil {
+		log.Printf("xds server will listen on %d\n", xdsConfig.Port)
+		if err, _ := service.NewGrpcXdsServer(xdsConfig); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -126,8 +122,8 @@ func RunServers(
 	go func() {
 		defer wg.Done()
 
-		log.Printf("operation server will listen HTTP/1.1 on %d\n", opConf.Port)
-		if err := service.NewHttpOperationServer(opConf, opBase).ListenAndServe(); err != nil {
+		log.Printf("admin server will listen HTTP/1.1 on %d\n", adminConfig.Port)
+		if err := service.NewHttpAdminServer(adminConfig).ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -138,10 +134,10 @@ func RunServers(
 			Mockingbird: "alive",
 		}
 		for {
-			rooms := opBase.SocketHandler.Server.Rooms(env.SocketConfig.Namespace)
+			rooms := adminConfig.SocketHandler.Server.Rooms(env.SocketConfig.Namespace)
 			bs, _ := json.Marshal(s)
 			for _, r := range rooms {
-				opBase.SocketHandler.Server.BroadcastToRoom(env.SocketConfig.Namespace, r, service.StatusEventName, string(bs))
+				adminConfig.SocketHandler.Server.BroadcastToRoom(env.SocketConfig.Namespace, r, service.StatusEventName, string(bs))
 			}
 			if s.Envoy == "alive" {
 				time.Sleep(time.Minute)

@@ -7,7 +7,7 @@ import (
 	"github.com/lab-envoy/pkg/utils"
 )
 
-type Operations interface {
+type AdminEndpoints interface {
 	Health(context.Context, *HealthReq) (*HealthRes, error)
 
 	AddProxy(context.Context, *AddProxyReq) (*AddProxyRes, error)
@@ -21,13 +21,13 @@ type Operations interface {
 	RemoveMocker(context.Context, *RemoveMockerReq) (*RemoveMockerRes, error)
 }
 
-type OperationsEndpoints struct {
+type AdminService struct {
 	logger       *utils.Logger
 	snapshotCtrl *SnapshotController
 }
 
-func NewOperationsEndpoints(base *OperationServerBase) *OperationsEndpoints {
-	return &OperationsEndpoints{
+func NewAdminService(base *AdminServerConfig) *AdminService {
+	return &AdminService{
 		logger:       base.Logger,
 		snapshotCtrl: base.SnapshotCtrl,
 	}
@@ -42,7 +42,7 @@ type HealthRes struct {
 	Result string `json:"result"`
 }
 
-func (o OperationsEndpoints) Health(_ context.Context, req *HealthReq) (*HealthRes, error) {
+func (o AdminService) Health(_ context.Context, req *HealthReq) (*HealthRes, error) {
 	return &HealthRes{
 		Result: "ok",
 	}, nil
@@ -64,7 +64,7 @@ type AddProxyRes struct {
 	Proxy *dao.ProxyRoute
 }
 
-func (o OperationsEndpoints) AddProxy(_ context.Context, req *AddProxyReq) (*AddProxyRes, error) {
+func (o AdminService) AddProxy(_ context.Context, req *AddProxyReq) (*AddProxyRes, error) {
 	p := &dao.ProxyRoute{
 		Status:       req.Status,
 		Desc:         req.Desc,
@@ -106,7 +106,7 @@ type UpdateProxyRes struct {
 	Proxy *dao.ProxyRoute `json:"proxy"`
 }
 
-func (o OperationsEndpoints) UpdateProxy(_ context.Context, req *UpdateProxyReq) (*UpdateProxyRes, error) {
+func (o AdminService) UpdateProxy(_ context.Context, req *UpdateProxyReq) (*UpdateProxyRes, error) {
 	p := &dao.ProxyRoute{
 		ID:           req.ID,
 		Status:       req.Status,
@@ -142,7 +142,7 @@ type ListProxyRes struct {
 	Proxies []dao.ProxyRoute `json:"proxies"`
 }
 
-func (o OperationsEndpoints) ListProxy(_ context.Context, req *ListProxyReq) (*ListProxyRes, error) {
+func (o AdminService) ListProxy(_ context.Context, req *ListProxyReq) (*ListProxyRes, error) {
 	proxies, err := o.snapshotCtrl.Dao.ListRouter()
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ type RemoveProxyReq struct {
 type RemoveProxyRes struct {
 }
 
-func (o OperationsEndpoints) RemoveProxy(_ context.Context, req *RemoveProxyReq) (*RemoveProxyRes, error) {
+func (o AdminService) RemoveProxy(_ context.Context, req *RemoveProxyReq) (*RemoveProxyRes, error) {
 	if err := o.snapshotCtrl.Dao.RemoveRouterByID(req.ID); err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ type AddMockerRes struct {
 	Mocker *dao.DirectResponse `json:"mocker"`
 }
 
-func (o OperationsEndpoints) AddMocker(_ context.Context, req *AddMockerReq) (*AddMockerRes, error) {
+func (o AdminService) AddMocker(_ context.Context, req *AddMockerReq) (*AddMockerRes, error) {
 	dr := &dao.DirectResponse{
 		Status:    req.Status,
 		Desc:      req.Desc,
@@ -223,7 +223,7 @@ type UpdateMockerRes struct {
 	Mocker *dao.DirectResponse `json:"mocker"`
 }
 
-func (o OperationsEndpoints) UpdateMocker(_ context.Context, req *UpdateMockerReq) (*UpdateMockerRes, error) {
+func (o AdminService) UpdateMocker(_ context.Context, req *UpdateMockerReq) (*UpdateMockerRes, error) {
 	dr := &dao.DirectResponse{
 		ID:        req.ID,
 		Status:    req.Status,
@@ -251,7 +251,7 @@ type ListMockerRes struct {
 	Mockers []dao.DirectResponse `json:"mockers"`
 }
 
-func (o OperationsEndpoints) ListMocker(_ context.Context, req *ListMockerReq) (*ListMockerRes, error) {
+func (o AdminService) ListMocker(_ context.Context, req *ListMockerReq) (*ListMockerRes, error) {
 	mockers, err := o.snapshotCtrl.Dao.ListDirectRes()
 	if err != nil {
 		return nil, err
@@ -268,7 +268,7 @@ type RemoveMockerReq struct {
 type RemoveMockerRes struct {
 }
 
-func (o OperationsEndpoints) RemoveMocker(_ context.Context, req *RemoveMockerReq) (*RemoveMockerRes, error) {
+func (o AdminService) RemoveMocker(_ context.Context, req *RemoveMockerReq) (*RemoveMockerRes, error) {
 	if err := o.snapshotCtrl.Dao.RemoveDirectResByID(req.ID); err != nil {
 		return nil, err
 	}

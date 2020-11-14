@@ -28,7 +28,7 @@ jobs:
       - name: Build the Web Assets
         run: yarn build
         working-directory: ./web
-      # build management server
+      # build xds server
       - name: Build The Server Image and Push to DockerHub
         run: sh ./build.sh
       # Notification

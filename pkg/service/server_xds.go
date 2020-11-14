@@ -22,7 +22,7 @@ const (
 	grpcMaxConcurrentStreams = 1000000
 )
 
-type EnvoyManagementServerConfig struct {
+type EnvoyXdsConfig struct {
 	Port               uint
 	SnapshotController *SnapshotController
 	Logger             *utils.Logger
@@ -39,7 +39,7 @@ func registerServer(grpcServer *grpc.Server, server xds.Server) {
 }
 
 // RunServer starts an xDS server at the given port.
-func NewGRCPManagementServer(c *EnvoyManagementServerConfig) (error, *grpc.Server) {
+func NewGrpcXdsServer(c *EnvoyXdsConfig) (error, *grpc.Server) {
 	var grpcOptions []grpc.ServerOption
 	grpcOptions = append(grpcOptions, grpc.MaxConcurrentStreams(grpcMaxConcurrentStreams))
 	grpcServer := grpc.NewServer(grpcOptions...)
@@ -88,11 +88,11 @@ func (c Callbacks) OnStreamClosed(i int64) {
 	c.logger.Debugf("OnStreamClosed")
 }
 
-func (c Callbacks) OnStreamRequest(i int64, request *discoverygrpc.DiscoveryRequest) error {
-	c.logger.Debugf("OnStreamRequest")
+func (c Callbacks) OnStreamRequest(i int64, req *discoverygrpc.DiscoveryRequest) error {
+	c.logger.Infof("OnStreamRequest", i, req)
 	return nil
 }
 
-func (c Callbacks) OnStreamResponse(i int64, request *discoverygrpc.DiscoveryRequest, response *discoverygrpc.DiscoveryResponse) {
-	c.logger.Debugf("OnStreamResponse")
+func (c Callbacks) OnStreamResponse(i int64, req *discoverygrpc.DiscoveryRequest, res *discoverygrpc.DiscoveryResponse) {
+	c.logger.Infof("OnStreamResponse", i, req, res)
 }
