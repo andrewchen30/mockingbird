@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	accesslog "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v2"
 	clusterservice "github.com/envoyproxy/go-control-plane/envoy/service/cluster/v3"
 	discoverygrpc "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	endpointservice "github.com/envoyproxy/go-control-plane/envoy/service/endpoint/v3"
@@ -28,7 +29,7 @@ type EnvoyXdsConfig struct {
 	Logger             *utils.Logger
 }
 
-func registerServer(grpcServer *grpc.Server, server xds.Server) {
+func registerXdsServer(grpcServer *grpc.Server, server xds.Server, accessLogService *AccessLogService) {
 	discoverygrpc.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
 	endpointservice.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
 	clusterservice.RegisterClusterDiscoveryServiceServer(grpcServer, server)
@@ -36,6 +37,8 @@ func registerServer(grpcServer *grpc.Server, server xds.Server) {
 	listenerservice.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 	secretservice.RegisterSecretDiscoveryServiceServer(grpcServer, server)
 	runtimeservice.RegisterRuntimeDiscoveryServiceServer(grpcServer, server)
+
+	accesslog.RegisterAccessLogServiceServer(grpcServer, accessLogService)
 }
 
 // RunServer starts an xDS server at the given port.
@@ -55,7 +58,9 @@ func NewGrpcXdsServer(c *EnvoyXdsConfig) (error, *grpc.Server) {
 		NewCustomCallbacks(c.Logger),
 	)
 
-	registerServer(grpcServer, sv3)
+	als := &AccessLogService{}
+
+	registerXdsServer(grpcServer, sv3, als)
 
 	return grpcServer.Serve(lis), grpcServer
 }
@@ -71,28 +76,34 @@ func NewCustomCallbacks(l *utils.Logger) Callbacks {
 }
 
 func (c Callbacks) OnFetchRequest(ctx context.Context, request *discoverygrpc.DiscoveryRequest) error {
+	log.Print("OnFetchRequest")
 	c.logger.Debugf("OnFetchRequest")
 	return nil
 }
 
 func (c Callbacks) OnFetchResponse(request *discoverygrpc.DiscoveryRequest, response *discoverygrpc.DiscoveryResponse) {
+	log.Print("OnFetchResponse")
 	c.logger.Debugf("OnFetchResponse")
 }
 
 func (c Callbacks) OnStreamOpen(ctx context.Context, i int64, s string) error {
+	log.Print("OnStreamOpen")
 	c.logger.Debugf("OnStreamOpen")
 	return nil
 }
 
 func (c Callbacks) OnStreamClosed(i int64) {
+	log.Print("OnStreamClosed")
 	c.logger.Debugf("OnStreamClosed")
 }
 
 func (c Callbacks) OnStreamRequest(i int64, req *discoverygrpc.DiscoveryRequest) error {
+	log.Print("OnStreamRequest")
 	c.logger.Infof("OnStreamRequest", i, req)
 	return nil
 }
 
 func (c Callbacks) OnStreamResponse(i int64, req *discoverygrpc.DiscoveryRequest, res *discoverygrpc.DiscoveryResponse) {
+	log.Print("OnStreamResponse")
 	c.logger.Infof("OnStreamResponse", i, req, res)
 }
