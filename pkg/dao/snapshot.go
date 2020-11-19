@@ -2,15 +2,16 @@ package dao
 
 import (
 	"fmt"
+	accessLogConfig "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	accessLoggers "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	envoyCache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
-	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes"
 	"time"
@@ -20,6 +21,8 @@ type Status string
 
 const (
 	EnvoyHttpMethodHeaderKey string = ":method"
+
+	XdsClusterName string = "gk-grpc"
 
 	StatusActive   = "active"
 	StatusInActive = "inactive"
@@ -220,21 +223,54 @@ func makeRoute(routeName string, easyRoutes []ProxyRoute, directRes []DirectResp
 	}
 }
 
+func genXdsGrpcServer() *core.GrpcService {
+	return &core.GrpcService{
+		TargetSpecifier: &core.GrpcService_EnvoyGrpc_{
+			EnvoyGrpc: &core.GrpcService_EnvoyGrpc{
+				ClusterName: XdsClusterName,
+			},
+		},
+	}
+}
+
+func genAccessLogConfig() *accessLoggers.HttpGrpcAccessLogConfig {
+	return &accessLoggers.HttpGrpcAccessLogConfig{
+		CommonConfig: &accessLoggers.CommonGrpcAccessLogConfig{
+			LogName:     "access_log",
+			GrpcService: genXdsGrpcServer(),
+		},
+		AdditionalRequestHeadersToLog: []string{
+			"user-agent",
+		},
+	}
+}
+
 func makeHTTPListener(listenerName string, routeName string) *listener.Listener {
+	alsConfig, err := ptypes.MarshalAny(genAccessLogConfig())
+	if err != nil {
+		panic(err)
+	}
+
 	manager := &hcm.HttpConnectionManager{
 		CodecType:  hcm.HttpConnectionManager_AUTO,
 		StatPrefix: "http",
 		RouteSpecifier: &hcm.HttpConnectionManager_Rds{
 			Rds: &hcm.Rds{
-				ConfigSource:    makeConfigSource(),
 				RouteConfigName: routeName,
+				ConfigSource:    makeConfigSource(),
 			},
 		},
 		HttpFilters: []*hcm.HttpFilter{{
 			Name: wellknown.Router,
 		}},
+		AccessLog: []*accessLogConfig.AccessLog{{
+			Name: wellknown.HTTPGRPCAccessLog,
+			ConfigType: &accessLogConfig.AccessLog_TypedConfig{
+				TypedConfig: alsConfig,
+			},
+		}},
 	}
-	pbst, err := ptypes.MarshalAny(manager)
+	httpConnManager, err := ptypes.MarshalAny(manager)
 	if err != nil {
 		panic(err)
 	}
@@ -256,7 +292,7 @@ func makeHTTPListener(listenerName string, routeName string) *listener.Listener 
 			Filters: []*listener.Filter{{
 				Name: wellknown.HTTPConnectionManager,
 				ConfigType: &listener.Filter_TypedConfig{
-					TypedConfig: pbst,
+					TypedConfig: httpConnManager,
 				},
 			}},
 		}},
@@ -265,17 +301,19 @@ func makeHTTPListener(listenerName string, routeName string) *listener.Listener 
 
 func makeConfigSource() *core.ConfigSource {
 	source := &core.ConfigSource{}
-	source.ResourceApiVersion = resource.DefaultAPIVersion
+	source.ResourceApiVersion = core.ApiVersion_V3
 	source.ConfigSourceSpecifier = &core.ConfigSource_ApiConfigSource{
 		ApiConfigSource: &core.ApiConfigSource{
-			TransportApiVersion:       resource.DefaultAPIVersion,
+			TransportApiVersion:       core.ApiVersion_V3,
 			ApiType:                   core.ApiConfigSource_GRPC,
 			SetNodeOnFirstMessageOnly: true,
-			GrpcServices: []*core.GrpcService{{
-				TargetSpecifier: &core.GrpcService_EnvoyGrpc_{
-					EnvoyGrpc: &core.GrpcService_EnvoyGrpc{ClusterName: "gk-grpc"},
+			GrpcServices: []*core.GrpcService{
+				{
+					TargetSpecifier: &core.GrpcService_EnvoyGrpc_{
+						EnvoyGrpc: &core.GrpcService_EnvoyGrpc{ClusterName: "gk-grpc"},
+					},
 				},
-			}},
+			},
 		},
 	}
 	return source

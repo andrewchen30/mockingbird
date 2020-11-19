@@ -28,8 +28,8 @@ services:
     build:
       context: .
     ports:
-      - '4000:4000'
       - '3000:3000'
+      - '4000:4000'
     networks:
       - mockingbird-internal
   build:

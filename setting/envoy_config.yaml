@@ -20,7 +20,6 @@ static_resources:
                     socket_address:
                       address: mockingbird
                       port_value: 4000
-
 node:
   cluster: dev-cluster
   id: mockingbird-default-id

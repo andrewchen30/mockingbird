@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 	"github.com/lab-envoy/pkg/dao"
 	"github.com/lab-envoy/pkg/service"
 	"github.com/lab-envoy/pkg/utils"
@@ -50,7 +50,7 @@ func main() {
 		return
 	}
 
-	log.Print("Env", env)
+	logger.Debugf("Env", env)
 
 	snapshotInternalMemoryDao := dao.NewInternalMemorySnapshotDao()
 	snapshotCtrl := service.NewSnapshotController(env.XdsServerConfig.NodeID, &snapshotInternalMemoryDao, logger)
@@ -96,7 +96,7 @@ func RunServers(
 ) {
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer func() {
@@ -129,6 +129,7 @@ func RunServers(
 	}()
 
 	go func() {
+		defer wg.Done()
 		s := service.StatusEvent{
 			Envoy:       "unknown",
 			Mockingbird: "alive",
