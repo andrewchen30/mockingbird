@@ -26,6 +26,7 @@ import {
   proxiesReducer,
   proxiesReducerInit
 } from '../store/proxies';
+import { AccessLogsList } from '../components/accessLogs/AccessLogsList';
 
 const DefaultMocker: IMocker = {
   prefix: '', 
@@ -129,6 +130,9 @@ function ProxyAndMockersPage() {
               })
             }}
             mockerDispatcher={mockerDispatcher}/>
+        </Col>
+        <Col span={8}>
+          <AccessLogsList/>
         </Col>
       </Row>
       <Row gutter={16}>

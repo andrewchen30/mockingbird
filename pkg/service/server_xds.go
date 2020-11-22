@@ -27,6 +27,7 @@ type EnvoyXdsConfig struct {
 	Port               uint
 	SnapshotController *SnapshotController
 	Logger             *utils.Logger
+	SocketHandler      *SocketHandler
 }
 
 func registerXdsServer(grpcServer *grpc.Server, server xds.Server, accessLogService *AccessLogService) {
@@ -46,6 +47,7 @@ func NewGrpcXdsServer(c *EnvoyXdsConfig) (error, *grpc.Server) {
 	var grpcOptions []grpc.ServerOption
 	grpcOptions = append(grpcOptions, grpc.MaxConcurrentStreams(grpcMaxConcurrentStreams))
 	grpcServer := grpc.NewServer(grpcOptions...)
+	als := NewAccessLogService(c.SocketHandler)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", c.Port))
 	if err != nil {
@@ -57,8 +59,6 @@ func NewGrpcXdsServer(c *EnvoyXdsConfig) (error, *grpc.Server) {
 		c.SnapshotController,
 		NewCustomCallbacks(c.Logger),
 	)
-
-	als := &AccessLogService{}
 
 	registerXdsServer(grpcServer, sv3, als)
 

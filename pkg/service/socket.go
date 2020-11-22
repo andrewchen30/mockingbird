@@ -18,8 +18,9 @@ func NewSocketHandler(NameSpace string, l *utils.Logger) (*SocketHandler, error)
 	}
 
 	socketHandler := &SocketHandler{
-		Server: s,
-		Logger: l,
+		Server:    s,
+		Logger:    l,
+		NameSpace: NameSpace,
 	}
 
 	socketHandler.InitHandlers()
@@ -31,23 +32,19 @@ func (h *SocketHandler) InitHandlers() {
 
 	h.Server.OnConnect(h.NameSpace, func(s socket.Conn) error {
 		s.SetContext("")
-		h.Logger.Infof("connected:", s.ID())
+		h.Logger.Infof("socket connected:", s.ID())
 		return nil
 	})
 
 	h.Server.OnError(h.NameSpace, func(s socket.Conn, e error) {
-		h.Logger.Errorf("meet error:", e)
+		h.Logger.Errorf("socket error:", e.Error(), e)
 	})
 
 	h.Server.OnDisconnect(h.NameSpace, func(s socket.Conn, msg string) {
-		h.Logger.Errorf("closed", msg)
+		h.Logger.Errorf("socket closed", msg)
 	})
 
 }
 
 const StatusEventName = "status_event"
-
-type StatusEvent struct {
-	Envoy       string `json:"envoy"`
-	Mockingbird string `json:"mockingbird"`
-}
+const HttpLogEventName = "http_log_event"

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "pb;pb";
+
+message StatusEvent {
+    string envoy = 1;
+    string mockingbird = 2;
+}
+
+message HttpLogEvent {
+    string authority = 1;
+    string path = 2;
+    string user_agent = 3;
+    string req_id = 4;
+    string req_method = 5;
+    int32 res_code = 6;
+}
