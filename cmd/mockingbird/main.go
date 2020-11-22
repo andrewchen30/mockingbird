@@ -143,7 +143,7 @@ func RunServers(
 			if s.Envoy == "alive" {
 				time.Sleep(time.Minute)
 			} else {
-				time.Sleep(15 * time.Second)
+				time.Sleep(5 * time.Second)
 			}
 			res, err := http.Get(fmt.Sprintf("%s/ready", env.XdsServerConfig.EnvoyHost))
 			if err != nil {

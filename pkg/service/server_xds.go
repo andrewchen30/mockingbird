@@ -76,34 +76,28 @@ func NewCustomCallbacks(l *utils.Logger) Callbacks {
 }
 
 func (c Callbacks) OnFetchRequest(ctx context.Context, request *discoverygrpc.DiscoveryRequest) error {
-	log.Print("OnFetchRequest")
 	c.logger.Debugf("OnFetchRequest")
 	return nil
 }
 
 func (c Callbacks) OnFetchResponse(request *discoverygrpc.DiscoveryRequest, response *discoverygrpc.DiscoveryResponse) {
-	log.Print("OnFetchResponse")
 	c.logger.Debugf("OnFetchResponse")
 }
 
 func (c Callbacks) OnStreamOpen(ctx context.Context, i int64, s string) error {
-	log.Print("OnStreamOpen")
 	c.logger.Debugf("OnStreamOpen")
 	return nil
 }
 
 func (c Callbacks) OnStreamClosed(i int64) {
-	log.Print("OnStreamClosed")
 	c.logger.Debugf("OnStreamClosed")
 }
 
 func (c Callbacks) OnStreamRequest(i int64, req *discoverygrpc.DiscoveryRequest) error {
-	log.Print("OnStreamRequest")
 	c.logger.Infof("OnStreamRequest", i, req)
 	return nil
 }
 
 func (c Callbacks) OnStreamResponse(i int64, req *discoverygrpc.DiscoveryRequest, res *discoverygrpc.DiscoveryResponse) {
-	log.Print("OnStreamResponse")
 	c.logger.Infof("OnStreamResponse", i, req, res)
 }
