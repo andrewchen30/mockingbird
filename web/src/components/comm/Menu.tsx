@@ -6,6 +6,7 @@ import { MENU } from '../../const/menu';
 import { pareEventData, socketCtx } from '../../utils/socket';
 import styled from 'styled-components';
 import { FRONT_ERROR, FRONT_SUCCESS, FRONT_WARNING } from '../../const/color';
+import { StatusEvent } from '../../interfaces/pkg/pb/events_pb';
 
 enum ConnStatus {
   alive = 'alive',
@@ -80,13 +81,13 @@ export default function MenuList() {
       })
     });
     socket.on('status_event', function (data: any) {
-      const e = pareEventData<{ envoy: ConnStatus, mockingbird: ConnStatus }>(data);
+      const e = pareEventData<StatusEvent.AsObject>(data);
       if (!e) {
         return;
       }
       setSocketState({
-        mockingbird: e.mockingbird,
-        envoy: e.envoy
+        mockingbird: e.mockingbird as ConnStatus,
+        envoy: e.envoy as ConnStatus
       })
     });
     socket.on('disconnect', function () {

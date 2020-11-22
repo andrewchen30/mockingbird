@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/lab-envoy/pkg/dao"
+	"github.com/lab-envoy/pkg/pb"
 	"github.com/lab-envoy/pkg/service"
 	"github.com/lab-envoy/pkg/utils"
 	"io/ioutil"
@@ -67,7 +68,7 @@ func main() {
 		logger.Errorf("snapshotCtrl refresh snapshot failed", err)
 	}
 
-	socketHandler, err := service.NewSocketHandler("/", &logger)
+	socketHandler, err := service.NewSocketHandler(env.SocketConfig.Namespace, &logger)
 
 	if err != nil {
 		logger.Errorf("start socket server fail")
@@ -77,6 +78,7 @@ func main() {
 		Port:               env.XdsServerConfig.Port,
 		Logger:             &logger,
 		SnapshotController: &snapshotCtrl,
+		SocketHandler:      socketHandler,
 	}
 
 	opBase := &service.AdminServerConfig{
@@ -130,20 +132,21 @@ func RunServers(
 
 	go func() {
 		defer wg.Done()
-		s := service.StatusEvent{
+		s := pb.StatusEvent{
 			Envoy:       "unknown",
 			Mockingbird: "alive",
 		}
+
 		for {
-			rooms := adminConfig.SocketHandler.Server.Rooms(env.SocketConfig.Namespace)
+			rooms := adminConfig.SocketHandler.Server.Rooms(adminConfig.SocketHandler.NameSpace)
 			bs, _ := json.Marshal(s)
 			for _, r := range rooms {
-				adminConfig.SocketHandler.Server.BroadcastToRoom(env.SocketConfig.Namespace, r, service.StatusEventName, string(bs))
+				adminConfig.SocketHandler.Server.BroadcastToRoom(adminConfig.SocketHandler.NameSpace, r, service.StatusEventName, string(bs))
 			}
 			if s.Envoy == "alive" {
 				time.Sleep(time.Minute)
 			} else {
-				time.Sleep(15 * time.Second)
+				time.Sleep(5 * time.Second)
 			}
 			res, err := http.Get(fmt.Sprintf("%s/ready", env.XdsServerConfig.EnvoyHost))
 			if err != nil {
