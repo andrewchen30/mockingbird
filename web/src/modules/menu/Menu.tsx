@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { NavLink, useRouteMatch } from "react-router-dom";
 import {
   Flex,
@@ -17,11 +17,13 @@ interface MenuItemProps {
 
 const MenuItem: React.FunctionComponent<MenuItemProps> = ({ item }) => {
   const match = useRouteMatch(item.path);
+  const isCurrentPage = useCallback(() => Boolean(match), [match])
   return (
     <Box
       p='12px 0 12px 24px'
-      fontWeight={Boolean(match) ? 700 : 200}
-      color={Boolean(match) ? 'mockingbirdPink.600' : ''}
+      fontWeight={600}
+      textDecoration={isCurrentPage() ? 'underline' : ''}
+      color={isCurrentPage() ? 'mockingbirdPink.600' : ''}
     >
       <NavLink exact to={item.path}>
         {item.title}
