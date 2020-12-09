@@ -1,5 +1,5 @@
-import React from 'react'
-import { IProxy, } from '../../interfaces/Proxy';
+import React from 'react';
+import { IProxy } from '../../interfaces/Proxy';
 import ProxyItem from './ProxyItem';
 
 interface Props {
@@ -16,8 +16,9 @@ export default function ProxyList(props: Props) {
           key={i}
           proxy={p}
           onEditBtnClick={props.onEditBtnClick}
-          onDeleteBtnClick={props.onDeleteBtnClick} />
+          onDeleteBtnClick={props.onDeleteBtnClick}
+        />
       ))}
     </>
-  )
+  );
 }

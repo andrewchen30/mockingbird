@@ -6,7 +6,9 @@ body {
     'Microsoft JhengHei', sans-serif;
 }
 
-body, html, #root {
+body,
+html,
+#root {
   height: 100%;
   margin: 0;
   padding: 0;

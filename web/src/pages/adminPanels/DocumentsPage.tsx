@@ -1,15 +1,9 @@
 import React from 'react';
 
-interface DocumentsPageProps {
-
-}
+interface DocumentsPageProps {}
 
 const DocumentsPage: React.FunctionComponent<DocumentsPageProps> = () => {
-  return (
-    <div>
-      here is Documents page
-    </div>
-  );
-}
+  return <div>here is Documents page</div>;
+};
 
 export default DocumentsPage;

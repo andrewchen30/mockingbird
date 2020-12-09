@@ -8,10 +8,10 @@ export interface IMenuItem {
 export const MENU: IMenuItem[] = [
   {
     path: '/admin/documents',
-    title: 'Documents'
+    title: 'Documents',
   },
   {
     path: '/admin/routes',
-    title: 'Mockers and Proxies'
-  }
+    title: 'Mockers and Proxies',
+  },
 ];

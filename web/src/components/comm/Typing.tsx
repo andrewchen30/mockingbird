@@ -10,8 +10,7 @@ interface Props {
 }
 
 function Typing(props: Props) {
-
-  const [showing, setShowing] = useState({ idx: 0, text: '', direction: 1 })
+  const [showing, setShowing] = useState({ idx: 0, text: '', direction: 1 });
   const {
     list,
     sentenceDelay,
@@ -26,10 +25,8 @@ function Typing(props: Props) {
         setShowing({
           direction: 1,
           text: '',
-          idx: (showing.idx < (list.length - 1)
-            ? showing.idx + 1
-            : 0)
-        })
+          idx: showing.idx < list.length - 1 ? showing.idx + 1 : 0,
+        });
       }, sentenceDelay);
       return;
     }
@@ -40,18 +37,24 @@ function Typing(props: Props) {
           idx: showing.idx,
           direction: -1,
           text: list[showing.idx].substring(0, showing.text.length - 1),
-        })
-      }, sentenceShowTime)
+        });
+      }, sentenceShowTime);
       return;
     }
 
-    setTimeout(() => {
-      setShowing({
-        idx: showing.idx,
-        direction: showing.direction,
-        text: list[showing.idx].substring(0, showing.text.length + showing.direction),
-      })
-    }, showing.direction === 1 ? typingDelay : backspaceDelay)
+    setTimeout(
+      () => {
+        setShowing({
+          idx: showing.idx,
+          direction: showing.direction,
+          text: list[showing.idx].substring(
+            0,
+            showing.text.length + showing.direction
+          ),
+        });
+      },
+      showing.direction === 1 ? typingDelay : backspaceDelay
+    );
   }, [
     list,
     sentenceDelay,
@@ -60,15 +63,21 @@ function Typing(props: Props) {
     backspaceDelay,
     showing.direction,
     showing.idx,
-    showing.text.length
-  ])
+    showing.text.length,
+  ]);
 
-  useEffect(() => { setTimeout(render, 0) }, [render]);
+  useEffect(() => {
+    setTimeout(render, 0);
+  }, [render]);
 
   return (
     <Container>
       {showing.text}
-      <BlinkCursor blink={showing.text.length === props.list[showing.idx].length}>|</BlinkCursor>
+      <BlinkCursor
+        blink={showing.text.length === props.list[showing.idx].length}
+      >
+        |
+      </BlinkCursor>
     </Container>
   );
 }
@@ -79,9 +88,11 @@ const Container = styled.div`
 `;
 
 const BlinkCursor = styled.span<{ blink: boolean }>`
-  animation: ${(p) => p.blink ? 'blinker .8s step-start infinite' : 'none'};
+  animation: ${(p) => (p.blink ? 'blinker .8s step-start infinite' : 'none')};
   @keyframes blinker {
-    50% { opacity: 0; };
+    50% {
+      opacity: 0;
+    }
   }
 `;
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChakraProvider } from "@chakra-ui/react"
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { ChakraProvider } from '@chakra-ui/react';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 
 import LandingPage from './pages/LandingPage';
 import AdminPanelPage from './pages/AdminPanelPage';
@@ -14,10 +14,10 @@ function App() {
       <BrowserRouter>
         <Switch>
           <Route exact path="/admin">
-            <LandingPage/>
+            <LandingPage />
           </Route>
           <Route path="/admin/*">
-            <AdminPanelPage/>
+            <AdminPanelPage />
           </Route>
         </Switch>
       </BrowserRouter>

@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer, useState } from 'react';
-import styled from 'styled-components'
+import styled from 'styled-components';
 import { PlusOutlined, RedoOutlined } from '@ant-design/icons';
-import { Button, Divider, Row, Col } from 'antd'
+import { Button, Divider, Row, Col } from 'antd';
 import MockerForm from '../components/mockers/MockerForm';
 import MockerList from '../components/mockers/MockerList';
 import { IMocker } from '../interfaces/Mocker';
@@ -9,13 +9,13 @@ import { notifier } from '../utils/notify';
 import ProxyList from '../components/proxies/ProxyList';
 import { IProxy } from '../interfaces/Proxy';
 import ProxyForm from '../components/proxies/ProxyForm';
-import { 
+import {
   genCreateMockersAction,
   genDeleteMockersAction,
   genRefreshMockersAction,
   genUpdateMockersAction,
   mockersReducer,
-  mockersReducerInit
+  mockersReducerInit,
 } from '../store/mockers';
 import {
   genCreateProxiesAction,
@@ -23,19 +23,19 @@ import {
   genRefreshProxiesAction,
   genUpdateProxiesAction,
   proxiesReducer,
-  proxiesReducerInit
+  proxiesReducerInit,
 } from '../store/proxies';
 import { AccessLogsList } from '../components/accessLogs/AccessLogsList';
 
 const DefaultMocker: IMocker = {
-  prefix: '', 
+  prefix: '',
   reqMethod: 'GET',
   resStatus: 200,
   resBody: '',
   desc: '',
   createBy: 'AndrewChen',
-  status: 'active'
-}
+  status: 'active',
+};
 
 const DefaultProxy: IProxy = {
   prefix: '/',
@@ -45,23 +45,34 @@ const DefaultProxy: IProxy = {
   status: 'active',
   upstreamName: '',
   upstreamHost: '',
-  upstreamPort: 3000
-}
+  upstreamPort: 3000,
+};
 
-type FormState<T> = {
-  visible: false;
-} |{
-  visible: true;
-  action: 'toCreate';
-} | {
-  visible: true;
-  action: 'toUpdate';
-  data: T
-}
+type FormState<T> =
+  | {
+      visible: false;
+    }
+  | {
+      visible: true;
+      action: 'toCreate';
+    }
+  | {
+      visible: true;
+      action: 'toUpdate';
+      data: T;
+    };
 
 function ProxyAndMockersPage() {
-  const [mockers, mockerDispatcher] = useReducer(mockersReducer, [], mockersReducerInit);
-  const [proxies, proxyDispatcher] = useReducer(proxiesReducer, [], proxiesReducerInit);
+  const [mockers, mockerDispatcher] = useReducer(
+    mockersReducer,
+    [],
+    mockersReducerInit
+  );
+  const [proxies, proxyDispatcher] = useReducer(
+    proxiesReducer,
+    [],
+    proxiesReducerInit
+  );
   const [listLoading, setListLoading] = useState(false);
   const refreshProxyAction = genRefreshProxiesAction(proxyDispatcher);
   const refreshMockerAction = genRefreshMockersAction(mockerDispatcher);
@@ -72,42 +83,46 @@ function ProxyAndMockersPage() {
   const updateProxy = genUpdateProxiesAction(proxyDispatcher);
   const deleteProxy = genDeleteProxiesAction(proxyDispatcher);
 
-  const [mockerFormState, setMockerFormState] = useState<FormState<IMocker>>({ visible: false });
-  const [proxyFormState, setProxyFormState] = useState<FormState<IProxy>>({ visible: false });
-
+  const [mockerFormState, setMockerFormState] = useState<FormState<IMocker>>({
+    visible: false,
+  });
+  const [proxyFormState, setProxyFormState] = useState<FormState<IProxy>>({
+    visible: false,
+  });
 
   useEffect(() => {
     if (mockers.length === 0) {
-      setListLoading(true)
-      setTimeout(() => { 
-        refreshMockerAction()
-        refreshProxyAction()
-        setListLoading(false)
-      }, 800)
+      setListLoading(true);
+      setTimeout(() => {
+        refreshMockerAction();
+        refreshProxyAction();
+        setListLoading(false);
+      }, 800);
     }
   }, [mockers.length, refreshMockerAction, refreshProxyAction]);
-
 
   return (
     <Container>
       <ControlPanel>
         <Button
-          type='primary'
-          shape='circle'
+          type="primary"
+          shape="circle"
           icon={<PlusOutlined />}
-          onClick={() => setMockerFormState({ visible: true, action: 'toCreate' })}>
-        </Button>
+          onClick={() =>
+            setMockerFormState({ visible: true, action: 'toCreate' })
+          }
+        ></Button>
         <Button
-          shape='circle'
+          shape="circle"
           loading={listLoading}
           icon={<RedoOutlined />}
           onClick={async () => {
-            setListLoading(true)
+            setListLoading(true);
             await refreshMockerAction();
             await refreshProxyAction();
             setTimeout(() => setListLoading(false), 650);
-          }}>
-        </Button>
+          }}
+        ></Button>
       </ControlPanel>
       <Row gutter={16}>
         <Col span={12}>
@@ -116,37 +131,41 @@ function ProxyAndMockersPage() {
             mockers={mockers}
             onDeleteBtnClick={deleteMocker}
             onEditBtnClick={(mockerId: number) => {
-              const target = mockers.find((m) => m.id === mockerId)
+              const target = mockers.find((m) => m.id === mockerId);
               if (!target) {
-                notifier.warning('Start editor failed', `Mocker ${mockerId} not found`);
+                notifier.warning(
+                  'Start editor failed',
+                  `Mocker ${mockerId} not found`
+                );
                 return;
               }
               setMockerFormState({
                 visible: true,
                 action: 'toUpdate',
-                data: target
-              })
+                data: target,
+              });
             }}
-            mockerDispatcher={mockerDispatcher}/>
+            mockerDispatcher={mockerDispatcher}
+          />
         </Col>
         <Col span={8}>
-          <AccessLogsList/>
+          <AccessLogsList />
         </Col>
       </Row>
       <Row gutter={16}>
         <Col span={12}>
           <ControlPanel>
             <Button
-              shape='circle'
+              shape="circle"
               loading={listLoading}
               icon={<RedoOutlined />}
               onClick={async () => {
-                setListLoading(true)
+                setListLoading(true);
                 await refreshMockerAction();
                 await refreshProxyAction();
                 setTimeout(() => setListLoading(false), 650);
-              }}>
-            </Button>
+              }}
+            ></Button>
           </ControlPanel>
         </Col>
       </Row>
@@ -157,26 +176,32 @@ function ProxyAndMockersPage() {
             proxies={proxies}
             onDeleteBtnClick={deleteProxy}
             onEditBtnClick={(proxyId: number) => {
-              const target = proxies.find((m) => m.id === proxyId)
+              const target = proxies.find((m) => m.id === proxyId);
               if (!target) {
-                notifier.warning('Start editor failed', `Proxy ${proxyId} not found`);
+                notifier.warning(
+                  'Start editor failed',
+                  `Proxy ${proxyId} not found`
+                );
                 return;
               }
               setProxyFormState({
                 visible: true,
                 action: 'toUpdate',
-                data: target
-              })
-            }} />
+                data: target,
+              });
+            }}
+          />
         </Col>
       </Row>
       {mockerFormState.visible && (
         <MockerForm
           action={mockerFormState.action}
           visible={mockerFormState.visible}
-          data={(
-            mockerFormState.action === 'toUpdate' ? mockerFormState.data : { ...DefaultMocker }
-          )}
+          data={
+            mockerFormState.action === 'toUpdate'
+              ? mockerFormState.data
+              : { ...DefaultMocker }
+          }
           onClose={() => setMockerFormState({ visible: false })}
           onComplete={async (data) => {
             let success: boolean = false;
@@ -188,10 +213,9 @@ function ProxyAndMockersPage() {
                 resBody: data.resBody,
                 desc: data.desc,
                 createBy: data.createBy,
-                status: data.status
+                status: data.status,
               });
-            }
-            else if (mockerFormState.action === 'toUpdate') {
+            } else if (mockerFormState.action === 'toUpdate') {
               success = await updateMocker({
                 id: data.id,
                 prefix: data.prefix,
@@ -200,11 +224,11 @@ function ProxyAndMockersPage() {
                 resBody: data.resBody,
                 desc: data.desc,
                 createBy: data.createBy,
-                status: data.status
+                status: data.status,
               });
             }
             if (success) {
-              setMockerFormState({ visible: false })
+              setMockerFormState({ visible: false });
             }
           }}
         />
@@ -214,9 +238,11 @@ function ProxyAndMockersPage() {
         <ProxyForm
           action={proxyFormState.action}
           visible={proxyFormState.visible}
-          data={(
-            proxyFormState.action === 'toUpdate' ? proxyFormState.data : { ...DefaultProxy }
-          )}
+          data={
+            proxyFormState.action === 'toUpdate'
+              ? proxyFormState.data
+              : { ...DefaultProxy }
+          }
           onClose={() => setProxyFormState({ visible: false })}
           onComplete={async (data) => {
             let success: boolean = false;
@@ -228,17 +254,16 @@ function ProxyAndMockersPage() {
               status: data.status,
               upstreamName: data.upstreamName,
               upstreamHost: data.upstreamHost,
-              upstreamPort: data.upstreamPort
+              upstreamPort: data.upstreamPort,
             };
 
             if (proxyFormState.action === 'toCreate') {
               success = await createProxy(payload);
-            }
-            else if (proxyFormState.action === 'toUpdate') {
+            } else if (proxyFormState.action === 'toUpdate') {
               success = await updateProxy({ id: data.id, ...payload });
             }
             if (success) {
-              setProxyFormState({ visible: false })
+              setProxyFormState({ visible: false });
             }
           }}
         />

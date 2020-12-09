@@ -1,22 +1,24 @@
 import React from 'react';
-import { useContext, useState, useCallback, useEffect } from "react";
+import { useContext, useState, useCallback, useEffect } from 'react';
 import { HttpLogEvent } from '../../interfaces/pkg/pb/events_pb';
-import { socketCtx, pareEventData } from "../../utils/socket";
+import { socketCtx, pareEventData } from '../../utils/socket';
 
 export const AccessLogsList = () => {
-  const socket = useContext(socketCtx)
-  const [logs, setLogs] = useState<HttpLogEvent.AsObject[]>([])
+  const socket = useContext(socketCtx);
+  const [logs, setLogs] = useState<HttpLogEvent.AsObject[]>([]);
   const socketCb = useCallback(() => {
     socket.on('http_log_event', function (data: any) {
       const e = pareEventData<HttpLogEvent.AsObject>(data);
       if (!e) {
         return;
       }
-      setLogs([e, ...logs].slice(0, 10))
+      setLogs([e, ...logs].slice(0, 10));
     });
-  }, [socket, logs])
+  }, [socket, logs]);
 
-  useEffect(() => { socketCb() })
+  useEffect(() => {
+    socketCb();
+  });
 
   return (
     <div>
@@ -28,4 +30,4 @@ export const AccessLogsList = () => {
       ))}
     </div>
   );
-}
+};

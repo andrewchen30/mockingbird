@@ -1,15 +1,9 @@
 import React from 'react';
 
-interface RoutingPageProps {
-
-}
+interface RoutingPageProps {}
 
 const RoutingPage: React.FunctionComponent<RoutingPageProps> = () => {
-  return (
-    <div>
-      here is routing page
-    </div>
-  );
-}
+  return <div>here is routing page</div>;
+};
 
 export default RoutingPage;

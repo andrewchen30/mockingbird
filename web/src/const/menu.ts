@@ -1,4 +1,3 @@
-
 export interface IMenu {
   path: string;
   title: string;
@@ -9,10 +8,10 @@ export interface IMenu {
 export const MENU: IMenu[] = [
   {
     path: '/admin/routes',
-    title: 'Proxy & Mockers'
+    title: 'Proxy & Mockers',
   },
   {
     path: '/admin/docs',
-    title: 'Documents'
-  }
+    title: 'Documents',
+  },
 ];
