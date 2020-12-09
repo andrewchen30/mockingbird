@@ -2,7 +2,7 @@ import { extendTheme } from '@chakra-ui/react'
 
 export const ThemeMockingbird = extendTheme({
   colors: {
-    mockingBirdBlue: {
+    mockingbirdBlue: {
       100: '#006fd6',
       200: '#0065c2',
       300: '#005aad',
@@ -13,7 +13,7 @@ export const ThemeMockingbird = extendTheme({
       800: '#002447',
       900: '#001a33'
     },
-    mockingBirdPink: {
+    mockingbirdPink: {
       100: '#f0b6e4',
       200: '#d698c9',
       300: '#cc87bc',
@@ -28,8 +28,8 @@ export const ThemeMockingbird = extendTheme({
   styles: {
     global: {
       body: {
-        bg: 'gray.200',
-        color: 'gray.800',
+        bg: 'mockingbirdBlue.900',
+        color: 'gray.200',
       },
     }
   },

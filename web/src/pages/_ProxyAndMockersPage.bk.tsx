@@ -2,7 +2,6 @@ import React, { useEffect, useReducer, useState } from 'react';
 import styled from 'styled-components'
 import { PlusOutlined, RedoOutlined } from '@ant-design/icons';
 import { Button, Divider, Row, Col } from 'antd'
-import PageHeader from '../components/comm/PageHeader';
 import MockerForm from '../components/mockers/MockerForm';
 import MockerList from '../components/mockers/MockerList';
 import { IMocker } from '../interfaces/Mocker';
@@ -91,7 +90,6 @@ function ProxyAndMockersPage() {
 
   return (
     <Container>
-      <PageHeader title='Proxy & Mockers'/>
       <ControlPanel>
         <Button
           type='primary'

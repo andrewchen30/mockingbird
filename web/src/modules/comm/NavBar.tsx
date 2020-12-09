@@ -12,8 +12,8 @@ export default function NavBar() {
       flexDirection='row'
       justifyContent='left'
       borderBottom='6px solid'
-      borderBottomColor='mockingBirdPink.600'
-      bg='mockingBirdBlue.900'
+      borderBottomColor='mockingbirdPink.600'
+      bg='mockingbirdBlue.900'
     >
       <Center> 
         <NavLink to='/admin'>
