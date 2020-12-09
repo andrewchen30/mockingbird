@@ -6,10 +6,11 @@ import LandingPage from './pages/LandingPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 
 import './App.css';
+import { ThemeMockingbird } from './modules/comm/ThemeProvider';
 
 function App() {
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={ThemeMockingbird}>
       <BrowserRouter>
         <Switch>
           <Route exact path="/admin">
