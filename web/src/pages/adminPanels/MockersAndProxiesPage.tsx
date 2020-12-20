@@ -1,8 +1,8 @@
 import React, { useContext, useEffect } from 'react';
-import { IMocker } from '../../interfaces/Mocker';
-import mockerPagiCtx from '../../modules/mocker/context';
 import MockerList from '../../modules/mocker/MockerList';
-import { actionList } from '../../utils/pagination/generalActions';
+
+import mockerPagiCtx from '../../modules/mocker/context';
+import { listMockerAction } from '../../modules/mocker/actions';
 
 interface RoutingPageProps {}
 
@@ -11,16 +11,7 @@ const RoutingPage: React.FunctionComponent<RoutingPageProps> = () => {
   const mockerCtx = useContext(mockerPagiCtx);
   const mockerQuery = mockerCtx.getByQuery(qs);
 
-  useEffect(() => {
-    if (mockerQuery.query) {
-      return;
-    }
-    mockerCtx.onQueryLoading('');
-    actionList<IMocker>({
-      onLoaded: (data) => mockerCtx.onQueryLoaded(qs, data),
-      onError: (err) => mockerCtx.onQueryError(qs, err),
-    });
-  }, [mockerCtx, mockerQuery.query]);
+  useEffect(() => listMockerAction(mockerCtx, '', false), [mockerCtx]);
 
   if (!mockerQuery.query || mockerQuery.query.status === 'loading') {
     return <div>loading</div>;

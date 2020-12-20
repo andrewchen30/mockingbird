@@ -77,10 +77,6 @@ function createGeneralMethods<Doc>({
     onQueryLoaded: (qs: string, list: Doc[]) => {
       setStore((store) =>
         produce(store, (draft) => {
-          if (!store.queries[qs]) {
-            console.error('unknown query loaded');
-            return;
-          }
           if (!Array.isArray(list)) {
             console.error('result list is not an array.');
             return;
@@ -102,10 +98,7 @@ function createGeneralMethods<Doc>({
             ids.push(docId);
             draft.index.set(docId, createDraft(doc));
           }
-
-          draft.queries[qs].status = 'loaded';
-          draft.queries[qs].error = '';
-          draft.queries[qs].ids = ids;
+          draft.queries[qs] = { status: 'loaded', ids };
         })
       );
     },

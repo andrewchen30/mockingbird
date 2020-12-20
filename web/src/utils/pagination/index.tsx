@@ -7,7 +7,7 @@ import { IPaginationStore } from './types';
 
 interface CreatePaginationOptions {}
 
-interface IPaginationContext<Doc> extends IBaseCRUD<Doc> {
+export interface IPaginationContext<Doc> extends IBaseCRUD<Doc> {
   store: IPaginationStore<Doc>;
 }
 
