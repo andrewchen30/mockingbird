@@ -25,7 +25,7 @@ const AdminPanelPage: React.FunctionComponent<AdminPanelPageProps> = () => {
       </GridItem>
       <GridItem colSpan={1}>
         <Switch>
-          <Route exact path="/admin/routings">
+          <Route exact path="/admin/routes">
             <RoutingPage />
           </Route>
           <Route exact path="/admin/documents">

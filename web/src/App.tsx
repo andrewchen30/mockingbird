@@ -6,21 +6,27 @@ import LandingPage from './pages/LandingPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 
 import './App.css';
+import { enableMapSet } from 'immer';
 import { ThemeMockingbird } from './modules/comm/ThemeProvider';
+import { MockerProvider } from './modules/mocker/context';
+
+enableMapSet();
 
 function App() {
   return (
     <ChakraProvider theme={ThemeMockingbird}>
-      <BrowserRouter>
-        <Switch>
-          <Route exact path="/admin">
-            <LandingPage />
-          </Route>
-          <Route path="/admin/*">
-            <AdminPanelPage />
-          </Route>
-        </Switch>
-      </BrowserRouter>
+      <MockerProvider>
+        <BrowserRouter>
+          <Switch>
+            <Route exact path="/admin">
+              <LandingPage />
+            </Route>
+            <Route path="/admin/*">
+              <AdminPanelPage />
+            </Route>
+          </Switch>
+        </BrowserRouter>
+      </MockerProvider>
     </ChakraProvider>
   );
 }
