@@ -28,7 +28,7 @@ export const ThemeMockingbird = extendTheme({
   styles: {
     global: {
       body: {
-        bg: 'mockingbirdBlue.900',
+        bg: 'gray.900',
         color: 'gray.200',
       },
     },
