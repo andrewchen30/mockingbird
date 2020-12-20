@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Typography, Card, Tag } from 'antd';
 import { IMocker } from '../../interfaces/Mocker';
 import HttpStatusCode from '../comm/HttpStatusCode';
-import JSONBeautifier from '../comm/JSONBeautify';
+import JSONBeautifier from '../../modules/comm/JSONBeautify';
 import {
   EditOutlined,
   LoadingOutlined,
