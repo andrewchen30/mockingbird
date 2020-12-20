@@ -40,5 +40,11 @@ export const ThemeMockingbird = extendTheme({
         color: 'white',
       },
     },
+    Button: {
+      baseStyle: {
+        bg: '',
+        color: 'white',
+      },
+    },
   },
 });
