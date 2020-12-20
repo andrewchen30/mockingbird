@@ -6,7 +6,7 @@ export interface IMocker {
   reqMethod: string;
   resStatus: number;
   resBody: string;
-  status: 'active' | 'inactive' | 'updating' | string;
+  status: 'active' | 'inactive' | 'updating';
 }
 
 export interface IListMockerRes {
