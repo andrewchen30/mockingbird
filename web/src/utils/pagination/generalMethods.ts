@@ -34,7 +34,6 @@ function createGeneralMethods<Doc>({
     },
     getByQuery: (qs: string) => {
       const q = store.queries[qs];
-      console.log('q', q);
       if (!q || q.status !== 'loaded') {
         return {
           query: q,
@@ -83,12 +82,9 @@ function createGeneralMethods<Doc>({
             return;
           }
           if (!Array.isArray(list)) {
-            console.log('list', list);
             console.error('result list is not an array.');
             return;
           }
-
-          console.log('list', list);
 
           const ids = [];
 
