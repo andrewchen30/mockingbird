@@ -6,7 +6,7 @@
     "@types/google-protobuf": "^3.7.4",
     "@types/lodash": "^4.14.164",
     "antd": "^4.7.3",
-    "axios": "^0.21.0",
+    "axios": "^0.21.2",
     "google-protobuf": "^3.14.0",
     "lodash": "^4.17.20",
     "react": "^17.0.1",
